@@ -1,0 +1,4 @@
+absl-py
+tensorflow-gpu
+tensorflow-datasets==2.1.0
+tensorflow-hub==0.7.0
