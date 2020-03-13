@@ -356,25 +356,27 @@ def main(argv):
   checkpoint_steps = (
       FLAGS.checkpoint_steps or (FLAGS.checkpoint_epochs * epoch_steps))
 
-  master = FLAGS.master
-  if FLAGS.use_tpu and master is None:
+  cluster = None
+  if FLAGS.use_tpu and FLAGS.master is None:
     if FLAGS.tpu_name:
       cluster = tf.distribute.cluster_resolver.TPUClusterResolver(
           FLAGS.tpu_name, zone=FLAGS.tpu_zone, project=FLAGS.gcp_project)
     else:
       cluster = tf.distribute.cluster_resolver.TPUClusterResolver()
-    tf.config.experimental_connect_to_cluster(cluster)
-    tf.tpu.experimental.initialize_tpu_system(cluster)
-    master = cluster.master()
+      tf.config.experimental_connect_to_cluster(cluster)
+      tf.tpu.experimental.initialize_tpu_system(cluster)
 
+  sliced_eval_mode = tf.estimator.tpu.InputPipelineConfig.SLICED
   run_config = tf.estimator.tpu.RunConfig(
       tpu_config=tf.estimator.tpu.TPUConfig(
-          iterations_per_loop=checkpoint_steps),
+          iterations_per_loop=checkpoint_steps,
+          eval_training_input_configuration=sliced_eval_mode),
       model_dir=FLAGS.model_dir,
       save_summary_steps=checkpoint_steps,
       save_checkpoints_steps=checkpoint_steps,
       keep_checkpoint_max=FLAGS.keep_checkpoint_max,
-      master=master)
+      master=FLAGS.master,
+      cluster=cluster)
   estimator = tf.estimator.tpu.TPUEstimator(
       model_lib.build_model_fn(model, num_classes, num_train_examples),
       config=run_config,
@@ -410,4 +412,5 @@ def main(argv):
 
 
 if __name__ == '__main__':
+  tf.disable_eager_execution()  # Disable eager mode when running with TF2.
   app.run(main)

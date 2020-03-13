@@ -10,6 +10,7 @@ The pre-trained models (base network with linear classifier layer) can be found 
 |[ResNet50 (2x)](https://storage.cloud.google.com/simclr-gcs/checkpoints/ResNet50_2x.zip) |          74.2          |
 |[ResNet50 (4x)](https://storage.cloud.google.com/simclr-gcs/checkpoints/ResNet50_4x.zip) |          76.6          |
 
+A note on the signatures of the TensorFlow Hub module: `default` is the representation output of the base network; `logits_sup` is the supervised classification logits for ImageNet 1000 categories. Others (e.g. `initial_max_pool`, `block_group1`) are middle layers of ResNet; refer to resnet.py for the specifics. See this [tutorial](https://www.tensorflow.org/hub/tf1_hub_module) for additional information regarding use of TensorFlow Hub modules.
 
 ## Enviroment setup
 
@@ -36,14 +37,29 @@ python run.py --train_mode=pretrain \
   --model_dir=/tmp/simclr_test --use_tpu=False
 ```
 
-To pretrain the model on ImageNet with Cloud TPUs, you should also set the following flags.
+To pretrain the model on ImageNet with Cloud TPUs, first check out the [Google Cloud TPU tutorial](https://cloud.google.com/tpu/docs/tutorials/mnist) for basic information on how to use Google Cloud TPUs.
+
+Once you have created virtual machine with Cloud TPUs, and pre-downloaded the ImageNet data for [tensorflow_datasets](https://www.tensorflow.org/datasets/catalog/imagenet2012), please set the following enviroment variables:
 
 ```
-  --use_tpu=True
-  --tpu_name=$TPU_NAME
+TPU_NAME=<tpu-name>
+STORAGE_BUCKET=gs://<storage-bucket>
+DATA_DIR=$STORAGE_BUCKET/<path-to-tensorflow-dataset>
+MODEL_DIR=$STORAGE_BUCKET/<path-to-store-checkpoints>
 ```
 
-Please see the [Google Cloud TPU tutorial](https://cloud.google.com/tpu/docs/tutorials/mnist) for how to use Cloud TPUs. More instruction on how to run with Cloud TPUs will be released soon!
+The following command can be used to pretrain a ResNet-50 on ImageNet (which reflects the default hyperparameters in our paper):
+
+```
+python run.py --train_mode=pretrain \
+  --train_batch_size=4096 --train_epochs=100 \
+  --learning_rate=0.3 --weight_decay=1e-6 --temperature=0.1 \
+  --dataset=imagenet2012 --image_size=224 --eval_split=validation \
+  --data_dir=$DATA_DIR --model_dir=$MODEL_DIR \
+  --use_tpu=True --tpu_name=$TPU_NAME --train_summary_steps=0
+```
+
+A batch size of 4096 requires at least 32 TPUs. 100 epochs takes around 6 hours with 32 TPU v3s.
 
 ## Finetuning
 
@@ -66,6 +82,21 @@ python -m tensorboard.main --logdir=/tmp/simclr_test
 ```
 
 As a reference, the above runs on CIFAR-10 should give you around 91% accuracy, though it can be further optimized.
+
+For fine-tuning a linear head on ImageNet using Cloud TPUs, first set the `CHKPT_DIR` to pretrained model dir and set a new `MODEL_DIR`, then use the following command:
+
+```
+python run.py --mode=train_then_eval --train_mode=finetune \
+  --fine_tune_after_block=4 --zero_init_logits_layer=True \
+  --variable_schema='(?!global_step|(?:.*/|^)LARSOptimizer|head)' \
+  --global_bn=False --optimizer=momentum --learning_rate=0.1 --weight_decay=1e-6 \
+  --train_epochs=90 --train_batch_size=4096 --warmup_epochs=0 \
+  --dataset=imagenet2012 --image_size=224 --eval_split=validation \
+  --data_dir=$DATA_DIR --model_dir=$MODEL_DIR --checkpoint=$CHKPT_DIR \
+  --use_tpu=True --tpu_name=$TPU_NAME --train_summary_steps=0
+```
+
+As a reference, the above runs on ImageNet should give you around 64.5% accuracy.
 
 ## Others
 
