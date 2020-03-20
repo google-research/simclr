@@ -366,11 +366,13 @@ def main(argv):
       tf.config.experimental_connect_to_cluster(cluster)
       tf.tpu.experimental.initialize_tpu_system(cluster)
 
+  default_eval_mode = tf.estimator.tpu.InputPipelineConfig.PER_HOST_V1
   sliced_eval_mode = tf.estimator.tpu.InputPipelineConfig.SLICED
   run_config = tf.estimator.tpu.RunConfig(
       tpu_config=tf.estimator.tpu.TPUConfig(
           iterations_per_loop=checkpoint_steps,
-          eval_training_input_configuration=sliced_eval_mode),
+          eval_training_input_configuration=sliced_eval_mode
+          if FLAGS.use_tpu else default_eval_mode),
       model_dir=FLAGS.model_dir,
       save_summary_steps=checkpoint_steps,
       save_checkpoints_steps=checkpoint_steps,
