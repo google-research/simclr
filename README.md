@@ -1,5 +1,12 @@
 # SimCLR - A Simple Framework for Contrastive Learning of Visual Representations
 
+<div align="center">
+  <img width="50%" alt="SimCLR Illustration" src="https://1.bp.blogspot.com/--vH4PKpE9Yo/Xo4a2BYervI/AAAAAAAAFpM/vaFDwPXOyAokAC8Xh852DzOgEs22NhbXwCLcBGAsYHQ/s1600/image4.gif">
+</div>
+<div align="center">
+  An illustration of SimCLR (from <a href="https://ai.googleblog.com/2020/04/advancing-self-supervised-and-semi.html">our blog here</a>).
+</div>
+
 ## Pre-trained models
 
 The pre-trained models (base network with linear classifier layer) can be found below.
@@ -98,11 +105,17 @@ python run.py --mode=train_then_eval --train_mode=finetune \
 
 As a reference, the above runs on ImageNet should give you around 64.5% accuracy.
 
+## Semi-supervised learning
+
+You can access 1% and 10% ImageNet subsets used for semi-supervised learning via [tensorflow datasets](https://www.tensorflow.org/datasets/catalog/imagenet2012_subset): simply set `dataset=imagenet2012_subset/1pct` and `dataset=imagenet2012_subset/10pct` in the command line for fine-tuning on these subsets.
+
+You can also find image IDs of these subsets in `imagenet_subsets/`.
+
 ## Others
 
-### Semi-supervised learning
+### Model convertion to Pytorch format
 
-Image IDs of ImageNet 1% and 10% subsets used for semi-supervised learning can be found in `imagenet_subsets/`.
+This [repo](https://github.com/tonylins/simclr-converter) provides a solution for converting the pretrained Tensorflow checkpoints into Pytorch ones.
 
 ## Cite
 

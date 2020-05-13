@@ -1,4 +1,4 @@
 absl-py
-tensorflow==1.15
-tensorflow-datasets==2.1.0
-tensorflow-hub==0.7.0
+tensorflow==1.15.2
+tensorflow-datasets==3.1.0
+tensorflow-hub==0.8.0
