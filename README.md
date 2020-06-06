@@ -117,6 +117,12 @@ You can also find image IDs of these subsets in `imagenet_subsets/`.
 
 This [repo](https://github.com/tonylins/simclr-converter) provides a solution for converting the pretrained Tensorflow checkpoints into Pytorch ones.
 
+### Other non-offical implementations
+
+(Feel free to share your implementation by creating an issue)
+
+This [repo](https://github.com/sayakpaul/SimCLR-in-TensorFlow-2) provides a minimal TF2 Keras implementation.
+
 ## Cite
 
 Our [arXiv paper](https://arxiv.org/abs/2002.05709).
