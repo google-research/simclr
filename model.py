@@ -22,7 +22,6 @@ from __future__ import print_function
 from absl import flags
 
 import data_util as data_util
-from lars_optimizer import LARSOptimizer
 import model_util as model_util
 import objective as obj_lib
 
@@ -81,6 +80,7 @@ def build_model_fn(model, num_classes, num_train_examples):
       contrast_loss = tf.zeros([])
       logits_con = tf.zeros([params['batch_size'], 10])
       labels_con = tf.zeros([params['batch_size'], 10])
+      hiddens = model_util.projection_head(hiddens, is_training)
       logits_sup = model_util.supervised_head(
           hiddens, num_classes, is_training)
       obj_lib.add_supervised_loss(
@@ -148,41 +148,8 @@ def build_model_fn(model, num_classes, num_train_examples):
               tf2.summary.scalar(
                   'learning_rate', learning_rate,
                   step=tf.train.get_global_step())
-              tf2.summary.scalar(
-                  'input_mean',
-                  tf.reduce_mean(features),
-                  step=tf.train.get_global_step())
-              tf2.summary.scalar(
-                  'input_max',
-                  tf.reduce_max(features),
-                  step=tf.train.get_global_step())
-              tf2.summary.scalar(
-                  'input_min',
-                  tf.reduce_min(features),
-                  step=tf.train.get_global_step())
-              tf2.summary.scalar(
-                  'num_labels',
-                  tf.reduce_mean(tf.reduce_sum(labels['labels'], -1)),
-                  step=tf.train.get_global_step())
 
-      if FLAGS.optimizer == 'momentum':
-        optimizer = tf.train.MomentumOptimizer(
-            learning_rate, FLAGS.momentum, use_nesterov=True)
-      elif FLAGS.optimizer == 'adam':
-        optimizer = tf.train.AdamOptimizer(
-            learning_rate)
-      elif FLAGS.optimizer == 'lars':
-        optimizer = LARSOptimizer(
-            learning_rate,
-            momentum=FLAGS.momentum,
-            weight_decay=FLAGS.weight_decay,
-            exclude_from_weight_decay=['batch_normalization', 'bias'])
-      else:
-        raise ValueError('Unknown optimizer {}'.format(FLAGS.optimizer))
-
-      if FLAGS.use_tpu:
-        optimizer = tf.tpu.CrossShardOptimizer(optimizer)
-
+      optimizer = model_util.get_optimizer(learning_rate)
       control_deps = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
       if FLAGS.train_summary_steps > 0:
         control_deps.extend(tf.summary.all_v2_summary_ops())

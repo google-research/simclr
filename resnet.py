@@ -86,7 +86,7 @@ class BatchNormalization(tf.layers.BatchNormalization):
 
 
 def batch_norm_relu(inputs, is_training, relu=True, init_zero=False,
-                    center=True, scale=True, data_format='channels_first'):
+                    center=True, scale=True, data_format='channels_last'):
   """Performs a batch normalization followed by a ReLU.
 
   Args:
@@ -111,7 +111,7 @@ def batch_norm_relu(inputs, is_training, relu=True, init_zero=False,
   if data_format == 'channels_first':
     axis = 1
   else:
-    axis = 3
+    axis = -1
 
   if FLAGS.global_bn:
     bn_foo = BatchNormalization(
@@ -141,7 +141,7 @@ def batch_norm_relu(inputs, is_training, relu=True, init_zero=False,
 
 
 def dropblock(net, is_training, keep_prob, dropblock_size,
-              data_format='channels_first'):
+              data_format='channels_last'):
   """DropBlock: a regularization method for convolutional neural networks.
 
   DropBlock is a form of structured dropout, where units in a contiguous
@@ -221,7 +221,7 @@ def dropblock(net, is_training, keep_prob, dropblock_size,
   return net
 
 
-def fixed_padding(inputs, kernel_size, data_format='channels_first'):
+def fixed_padding(inputs, kernel_size, data_format='channels_last'):
   """Pads the input along the spatial dimensions independently of input size.
 
   Args:
@@ -250,7 +250,7 @@ def fixed_padding(inputs, kernel_size, data_format='channels_first'):
 
 
 def conv2d_fixed_padding(inputs, filters, kernel_size, strides,
-                         data_format='channels_first'):
+                         data_format='channels_last'):
   """Strided 2-D convolution with explicit padding.
 
   The padding is consistent and is based only on `kernel_size`, not on the
@@ -277,8 +277,69 @@ def conv2d_fixed_padding(inputs, filters, kernel_size, strides,
       data_format=data_format)
 
 
+def sk_conv2d(inputs, filters, strides, sk_ratio, min_dim=32,
+              is_training=True, data_format='channels_last'):
+  """Selective kernel convolutional layer (https://arxiv.org/abs/1903.06586)."""
+  channel_axis = 1 if data_format == 'channels_first' else 3
+  pooling_axes = [2, 3] if data_format == 'channels_first' else [1, 2]
+
+  # Two stream convs (using split and both are 3x3).
+  inputs = conv2d_fixed_padding(
+      inputs=inputs, filters=2 * filters, kernel_size=3, strides=strides,
+      data_format=data_format)
+  inputs = batch_norm_relu(inputs, is_training, data_format=data_format)
+  inputs = tf.stack(tf.split(inputs, num_or_size_splits=2, axis=channel_axis))
+
+  # Mixing weights for two streams.
+  mid_dim = max(int(filters * sk_ratio), min_dim)
+  global_features = tf.reduce_mean(
+      tf.reduce_sum(inputs, axis=0), pooling_axes, keepdims=True)
+  global_features = tf.layers.conv2d(
+      inputs=global_features, filters=mid_dim, kernel_size=1, strides=1,
+      kernel_initializer=tf.variance_scaling_initializer(),
+      use_bias=False, data_format=data_format)
+  global_features = batch_norm_relu(
+      global_features, is_training, data_format=data_format)
+  mixing = tf.layers.conv2d(
+      inputs=global_features, filters=2 * filters, kernel_size=1, strides=1,
+      kernel_initializer=tf.variance_scaling_initializer(),
+      use_bias=False, data_format=data_format)
+  mixing = tf.stack(tf.split(mixing, num_or_size_splits=2, axis=channel_axis))
+  mixing = tf.nn.softmax(mixing, axis=0)
+
+  return tf.reduce_sum(inputs * mixing, axis=0)
+
+
+def se_layer(inputs, filters, se_ratio, data_format='channels_last'):
+  """Squeeze and Excitation layer (https://arxiv.org/abs/1709.01507)."""
+  if se_ratio <= 0:
+    return inputs
+  se_reduce = tf.layers.Conv2D(
+      max(1, int(filters * se_ratio)),
+      kernel_size=[1, 1],
+      strides=[1, 1],
+      kernel_initializer=tf.variance_scaling_initializer(),
+      padding='same',
+      data_format=data_format,
+      use_bias=True)
+  se_expand = tf.layers.Conv2D(
+      inputs.shape[-1],
+      kernel_size=[1, 1],
+      strides=[1, 1],
+      kernel_initializer=tf.variance_scaling_initializer(),
+      padding='same',
+      data_format=data_format,
+      use_bias=True)
+
+  spatial_dims = [2, 3] if data_format == 'channels_first' else [1, 2]
+  se_tensor = tf.reduce_mean(
+      inputs, spatial_dims, keepdims=True)
+  se_tensor = se_expand(tf.nn.relu(se_reduce(se_tensor)))
+  return tf.sigmoid(se_tensor) * inputs
+
+
 def residual_block(inputs, filters, is_training, strides,
-                   use_projection=False, data_format='channels_first',
+                   use_projection=False, data_format='channels_last',
                    dropblock_keep_prob=None, dropblock_size=None):
   """Standard building block for residual networks with BN after convolutions.
 
@@ -307,9 +368,19 @@ def residual_block(inputs, filters, is_training, strides,
   shortcut = inputs
   if use_projection:
     # Projection shortcut in first layer to match filters and strides
-    shortcut = conv2d_fixed_padding(
-        inputs=inputs, filters=filters, kernel_size=1, strides=strides,
-        data_format=data_format)
+    if FLAGS.sk_ratio > 0:  # Use ResNet-D (https://arxiv.org/abs/1812.01187)
+      if strides > 1:
+        inputs = fixed_padding(inputs, 2, data_format)
+      inputs = tf.layers.average_pooling2d(
+          inputs, pool_size=2, strides=strides,
+          padding='SAME' if strides == 1 else 'VALID', data_format=data_format)
+      shortcut = conv2d_fixed_padding(
+          inputs=inputs, filters=filters, kernel_size=1, strides=1,
+          data_format=data_format)
+    else:
+      shortcut = conv2d_fixed_padding(
+          inputs=inputs, filters=filters, kernel_size=1, strides=strides,
+          data_format=data_format)
     shortcut = batch_norm_relu(shortcut, is_training, relu=False,
                                data_format=data_format)
 
@@ -324,11 +395,14 @@ def residual_block(inputs, filters, is_training, strides,
   inputs = batch_norm_relu(inputs, is_training, relu=False, init_zero=True,
                            data_format=data_format)
 
+  if FLAGS.se_ratio > 0:
+    inputs = se_layer(inputs, filters, FLAGS.se_ratio, data_format=data_format)
+
   return tf.nn.relu(inputs + shortcut)
 
 
 def bottleneck_block(inputs, filters, is_training, strides,
-                     use_projection=False, data_format='channels_first',
+                     use_projection=False, data_format='channels_last',
                      dropblock_keep_prob=None, dropblock_size=None):
   """Bottleneck block variant for residual networks with BN after convolutions.
 
@@ -358,9 +432,21 @@ def bottleneck_block(inputs, filters, is_training, strides,
     # Projection shortcut only in first block within a group. Bottleneck blocks
     # end with 4 times the number of filters.
     filters_out = 4 * filters
-    shortcut = conv2d_fixed_padding(
-        inputs=inputs, filters=filters_out, kernel_size=1, strides=strides,
-        data_format=data_format)
+    if FLAGS.sk_ratio > 0:  # Use ResNet-D (https://arxiv.org/abs/1812.01187)
+      if strides > 1:
+        shortcut = fixed_padding(inputs, 2, data_format)
+      else:
+        shortcut = inputs
+      shortcut = tf.layers.average_pooling2d(
+          shortcut, pool_size=2, strides=strides,
+          padding='SAME' if strides == 1 else 'VALID', data_format=data_format)
+      shortcut = conv2d_fixed_padding(
+          inputs=shortcut, filters=filters_out, kernel_size=1, strides=1,
+          data_format=data_format)
+    else:
+      shortcut = conv2d_fixed_padding(
+          inputs=inputs, filters=filters_out, kernel_size=1, strides=strides,
+          data_format=data_format)
     shortcut = batch_norm_relu(shortcut, is_training, relu=False,
                                data_format=data_format)
   shortcut = dropblock(
@@ -375,10 +461,15 @@ def bottleneck_block(inputs, filters, is_training, strides,
       inputs, is_training=is_training, data_format=data_format,
       keep_prob=dropblock_keep_prob, dropblock_size=dropblock_size)
 
-  inputs = conv2d_fixed_padding(
-      inputs=inputs, filters=filters, kernel_size=3, strides=strides,
-      data_format=data_format)
-  inputs = batch_norm_relu(inputs, is_training, data_format=data_format)
+  if FLAGS.sk_ratio > 0:
+    inputs = sk_conv2d(
+        inputs, filters, strides, FLAGS.sk_ratio,
+        is_training=is_training, data_format=data_format)
+  else:
+    inputs = conv2d_fixed_padding(
+        inputs=inputs, filters=filters, kernel_size=3, strides=strides,
+        data_format=data_format)
+    inputs = batch_norm_relu(inputs, is_training, data_format=data_format)
   inputs = dropblock(
       inputs, is_training=is_training, data_format=data_format,
       keep_prob=dropblock_keep_prob, dropblock_size=dropblock_size)
@@ -392,11 +483,14 @@ def bottleneck_block(inputs, filters, is_training, strides,
       inputs, is_training=is_training, data_format=data_format,
       keep_prob=dropblock_keep_prob, dropblock_size=dropblock_size)
 
+  if FLAGS.se_ratio > 0:
+    inputs = se_layer(inputs, filters, FLAGS.se_ratio, data_format=data_format)
+
   return tf.nn.relu(inputs + shortcut)
 
 
 def block_group(inputs, filters, block_fn, blocks, strides, is_training, name,
-                data_format='channels_first', dropblock_keep_prob=None,
+                data_format='channels_last', dropblock_keep_prob=None,
                 dropblock_size=None):
   """Creates one group of blocks for the ResNet model.
 
@@ -478,9 +572,22 @@ def resnet_v1_generator(block_fn, layers, width_multiplier,
       inputs = batch_norm_relu(inputs, is_training, data_format=data_format)
       inputs = tf.identity(inputs, 'initial_max_pool')
     else:
-      inputs = conv2d_fixed_padding(
-          inputs=inputs, filters=64 * width_multiplier, kernel_size=7,
-          strides=2, data_format=data_format)
+      if FLAGS.sk_ratio > 0:  # Use ResNet-D (https://arxiv.org/abs/1812.01187)
+        inputs = conv2d_fixed_padding(
+            inputs=inputs, filters=64 * width_multiplier // 2, kernel_size=3,
+            strides=2, data_format=data_format)
+        inputs = batch_norm_relu(inputs, is_training, data_format=data_format)
+        inputs = conv2d_fixed_padding(
+            inputs=inputs, filters=64 * width_multiplier // 2, kernel_size=3,
+            strides=1, data_format=data_format)
+        inputs = batch_norm_relu(inputs, is_training, data_format=data_format)
+        inputs = conv2d_fixed_padding(
+            inputs=inputs, filters=64 * width_multiplier, kernel_size=3,
+            strides=1, data_format=data_format)
+      else:
+        inputs = conv2d_fixed_padding(
+            inputs=inputs, filters=64 * width_multiplier, kernel_size=7,
+            strides=2, data_format=data_format)
       inputs = tf.identity(inputs, 'initial_conv')
       inputs = batch_norm_relu(inputs, is_training, data_format=data_format)
 
@@ -560,14 +667,11 @@ def resnet_v1_generator(block_fn, layers, width_multiplier,
     if FLAGS.train_mode == 'finetune' and FLAGS.fine_tune_after_block == 4:
       inputs = tf.stop_gradient(inputs)
 
-    # The activation is 7x7 so this is a global average pool.
-    # TODO(huangyp): reduce_mean will be faster.
-    pool_size = (inputs.shape[1], inputs.shape[2])
-    inputs = tf.layers.average_pooling2d(
-        inputs=inputs, pool_size=pool_size, strides=1, padding='VALID',
-        data_format=data_format)
+    if data_format == 'channels_last':
+      inputs = tf.reduce_mean(inputs, [1, 2])
+    else:
+      inputs = tf.reduce_mean(inputs, [2, 3])
     inputs = tf.identity(inputs, 'final_avg_pool')
-    inputs = tf.squeeze(inputs, (1, 2))
 
     # filter_trainable_variables(trainable_variables, after_block=5)
     add_to_collection(trainable_variables, 'trainable_variables_inblock_')

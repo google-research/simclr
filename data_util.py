@@ -38,6 +38,19 @@ def random_apply(func, p, x):
       lambda: x)
 
 
+def random_brightness(image, max_delta, impl='simclrv2'):
+  """A multiplicative vs additive change of brightness."""
+  if impl == 'simclrv2':
+    factor = tf.random_uniform(
+        [], tf.maximum(1.0 - max_delta, 0), 1.0 + max_delta)
+    image = image * factor
+  elif impl == 'simclrv1':
+    image = random_brightness(image, max_delta=max_delta)
+  else:
+    raise ValueError('Unknown impl {} for random brightness.'.format(impl))
+  return image
+
+
 def to_grayscale(image, keep_channels=True):
   image = tf.image.rgb_to_grayscale(image)
   if keep_channels:
@@ -85,7 +98,7 @@ def color_jitter_nonrand(image, brightness=0, contrast=0, saturation=0, hue=0):
     def apply_transform(i, x, brightness, contrast, saturation, hue):
       """Apply the i-th transformation."""
       if brightness != 0 and i == 0:
-        x = tf.image.random_brightness(x, max_delta=brightness)
+        x = random_brightness(x, max_delta=brightness)
       elif contrast != 0 and i == 1:
         x = tf.image.random_contrast(
             x, lower=1-contrast, upper=1+contrast)
@@ -122,7 +135,7 @@ def color_jitter_rand(image, brightness=0, contrast=0, saturation=0, hue=0):
         if brightness == 0:
           return x
         else:
-          return tf.image.random_brightness(x, max_delta=brightness)
+          return random_brightness(x, max_delta=brightness)
       def contrast_foo():
         if contrast == 0:
           return x

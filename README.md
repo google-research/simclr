@@ -7,9 +7,15 @@
   An illustration of SimCLR (from <a href="https://ai.googleblog.com/2020/04/advancing-self-supervised-and-semi.html">our blog here</a>).
 </div>
 
-## Pre-trained models
+[News] June 17, 2020, we updated the code to reflect some changes in <a href="https://arxiv.org/abs/2006.10029">SimCLRv2</a>. The pre-trained and fine-tuned checkpoints for SimCLRv2 will be released soon. Stay tuned!
 
-The pre-trained models (base network with linear classifier layer) can be found below.
+## Pre-trained models for SimCLRv2
+
+Release soon. Stay tuned!
+
+## Pre-trained models for SimCLRv1
+
+The pre-trained models (base network with linear classifier layer) can be found below. Note that for these SimCLRv1 checkpoints, the projection head is not available.
 
 |                             Model checkpoint and hub-module                             |     ImageNet Top-1     |
 |-----------------------------------------------------------------------------------------|------------------------|
@@ -38,7 +44,7 @@ To pretrain the model on CIFAR-10 with a *single* GPU, try the following command
 ```
 python run.py --train_mode=pretrain \
   --train_batch_size=512 --train_epochs=1000 \
-  --learning_rate=1.0 --weight_decay=1e-6 --temperature=0.5 \
+  --learning_rate=1.0 --weight_decay=1e-4 --temperature=0.5 \
   --dataset=cifar10 --image_size=32 --eval_split=test --resnet_depth=18 \
   --use_blur=False --color_jitter_strength=0.5 \
   --model_dir=/tmp/simclr_test --use_tpu=False
@@ -59,23 +65,23 @@ The following command can be used to pretrain a ResNet-50 on ImageNet (which ref
 
 ```
 python run.py --train_mode=pretrain \
-  --train_batch_size=4096 --train_epochs=100 \
-  --learning_rate=0.3 --weight_decay=1e-6 --temperature=0.1 \
+  --train_batch_size=4096 --train_epochs=100 --temperature=0.1 \
+  --learning_rate=0.075 --learning_rate_scaling=sqrt --weight_decay=1e-4 \
   --dataset=imagenet2012 --image_size=224 --eval_split=validation \
   --data_dir=$DATA_DIR --model_dir=$MODEL_DIR \
   --use_tpu=True --tpu_name=$TPU_NAME --train_summary_steps=0
 ```
 
-A batch size of 4096 requires at least 32 TPUs. 100 epochs takes around 6 hours with 32 TPU v3s.
+A batch size of 4096 requires at least 32 TPUs. 100 epochs takes around 6 hours with 32 TPU v3s. Note that learning rate of 0.3 with `learning_rate_scaling=linear` is equivalent to that of 0.075 with `learning_rate_scaling=sqrt` when the batch size is 4096. However, using sqrt scaling allows it to train better when smaller batch size is used.
 
-## Finetuning
+## Finetuning the linear head (linear eval)
 
 To fine-tune a linear head (with a single GPU), try the following command:
 
 ```
 python run.py --mode=train_then_eval --train_mode=finetune \
   --fine_tune_after_block=4 --zero_init_logits_layer=True \
-  --variable_schema='(?!global_step|(?:.*/|^)LARSOptimizer|head)' \
+  --variable_schema='(?!global_step|(?:.*/|^)Momentum|head)' \
   --global_bn=False --optimizer=momentum --learning_rate=0.1 --weight_decay=0.0 \
   --train_epochs=100 --train_batch_size=512 --warmup_epochs=0 \
   --dataset=cifar10 --image_size=32 --eval_split=test --resnet_depth=18 \
@@ -95,7 +101,7 @@ For fine-tuning a linear head on ImageNet using Cloud TPUs, first set the `CHKPT
 ```
 python run.py --mode=train_then_eval --train_mode=finetune \
   --fine_tune_after_block=4 --zero_init_logits_layer=True \
-  --variable_schema='(?!global_step|(?:.*/|^)LARSOptimizer|head)' \
+  --variable_schema='(?!global_step|(?:.*/|^)Momentum|head)' \
   --global_bn=False --optimizer=momentum --learning_rate=0.1 --weight_decay=1e-6 \
   --train_epochs=90 --train_batch_size=4096 --warmup_epochs=0 \
   --dataset=imagenet2012 --image_size=224 --eval_split=validation \
@@ -105,13 +111,30 @@ python run.py --mode=train_then_eval --train_mode=finetune \
 
 As a reference, the above runs on ImageNet should give you around 64.5% accuracy.
 
-## Semi-supervised learning
+## Semi-supervised learning and fine-tuning the whole network
 
 You can access 1% and 10% ImageNet subsets used for semi-supervised learning via [tensorflow datasets](https://www.tensorflow.org/datasets/catalog/imagenet2012_subset): simply set `dataset=imagenet2012_subset/1pct` and `dataset=imagenet2012_subset/10pct` in the command line for fine-tuning on these subsets.
 
 You can also find image IDs of these subsets in `imagenet_subsets/`.
 
-## Others
+To fine-tune the whole network on ImageNet (1% of labels), refer to the following command:
+
+```
+python run.py --mode=train_then_eval --train_mode=finetune \
+  --fine_tune_after_block=-1 --zero_init_logits_layer=True \
+  --variable_schema='(?!global_step|(?:.*/|^)Momentum|head_supervised)' \
+  --global_bn=True --optimizer=lars --learning_rate=0.005 \
+  --learning_rate_scaling=sqrt --weight_decay=0 \
+  --train_epochs=60 --train_batch_size=1024 --warmup_epochs=0 \
+  --dataset=imagenet2012_subset/1pct --image_size=224 --eval_split=validation \
+  --data_dir=$DATA_DIR --model_dir=$MODEL_DIR --checkpoint=$CHKPT_DIR \
+  --use_tpu=True --tpu_name=$TPU_NAME --train_summary_steps=0 \
+  --num_proj_layers=3 --ft_proj_selector=1
+```
+
+Set the `checkpoint` to those that are only pre-trained but not fine-tuned. Given that SimCLRv1 checkpoints do not contain projection head, it is recommended to run with SimCLRv2 checkpoints (you can still run with SimCLRv1 checkpoints, but `variable_schema` needs to exclude `head`). The `num_proj_layers` and `ft_proj_selector` need to be adjusted accordingly following SimCLRv2 paper to obtain best performances.
+
+## Other resources
 
 ### Model convertion to Pytorch format
 
@@ -125,13 +148,24 @@ This [repo](https://github.com/sayakpaul/SimCLR-in-TensorFlow-2) provides a mini
 
 ## Cite
 
-Our [arXiv paper](https://arxiv.org/abs/2002.05709).
+[SimCLR paper](https://arxiv.org/abs/2002.05709):
 
 ```
 @article{chen2020simple,
   title={A Simple Framework for Contrastive Learning of Visual Representations},
   author={Chen, Ting and Kornblith, Simon and Norouzi, Mohammad and Hinton, Geoffrey},
   journal={arXiv preprint arXiv:2002.05709},
+  year={2020}
+}
+```
+
+[SimCLRv2 paper](https://arxiv.org/abs/2006.10029):
+
+```
+@article{chen2020big,
+  title={Big Self-Supervised Models are Strong Semi-Supervised Learners},
+  author={Chen, Ting and Kornblith, Simon and Swersky, Kevin and Norouzi, Mohammad and Hinton, Geoffrey},
+  journal={arXiv preprint arXiv:2006.10029},
   year={2020}
 }
 ```

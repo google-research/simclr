@@ -42,12 +42,16 @@ flags.DEFINE_float(
     'learning_rate', 0.3,
     'Initial learning rate per batch size of 256.')
 
+flags.DEFINE_enum(
+    'learning_rate_scaling', 'linear', ['linear', 'sqrt'],
+    'How to scale the learning rate as a function of batch size.')
+
 flags.DEFINE_float(
     'warmup_epochs', 10,
     'Number of epochs of warmup.')
 
 flags.DEFINE_float(
-    'weight_decay', 1e-6,
+    'weight_decay', 1e-4,
     'Amount of weight decay to use.')
 
 flags.DEFINE_float(
@@ -191,16 +195,21 @@ flags.DEFINE_boolean(
     'Temperature parameter for contrastive loss.')
 
 flags.DEFINE_enum(
-    'head_proj_mode', 'nonlinear', ['none', 'linear', 'nonlinear'],
+    'proj_head_mode', 'nonlinear', ['none', 'linear', 'nonlinear'],
     'How the head projection is done.')
 
 flags.DEFINE_integer(
-    'head_proj_dim', 128,
+    'proj_out_dim', 128,
     'Number of head projection dimension.')
 
 flags.DEFINE_integer(
-    'num_nlh_layers', 1,
+    'num_proj_layers', 3,
     'Number of non-linear head layers.')
+
+flags.DEFINE_integer(
+    'ft_proj_selector', -1,
+    'Which layer of the projection head to use during fine-tuning. '
+    '0 means no projection head, and -1 means the final layer.')
 
 flags.DEFINE_boolean(
     'global_bn', True,
@@ -213,6 +222,14 @@ flags.DEFINE_integer(
 flags.DEFINE_integer(
     'resnet_depth', 50,
     'Depth of ResNet.')
+
+flags.DEFINE_float(
+    'sk_ratio', 0.,
+    'If it is bigger than 0, it will enable SK. Recommendation: 0.0625.')
+
+flags.DEFINE_float(
+    'se_ratio', 0.,
+    'If it is bigger than 0, it will enable SE.')
 
 flags.DEFINE_integer(
     'image_size', 224,
@@ -243,7 +260,7 @@ def build_hub_module(model, num_classes, global_step, checkpoint_path):
     """Function that builds TF-Hub module."""
     endpoints = {}
     inputs = tf.placeholder(
-        tf.float32, [None, FLAGS.image_size, FLAGS.image_size, 3])
+        tf.float32, [None, None, None, 3])
     with tf.variable_scope('base_model', reuse=tf.AUTO_REUSE):
       hiddens = model(inputs, is_training)
       for v in ['initial_conv', 'initial_max_pool', 'block_group1',
@@ -414,5 +431,5 @@ def main(argv):
 
 
 if __name__ == '__main__':
-  tf.disable_eager_execution()  # Disable eager mode when running with TF2.
+  tf.disable_v2_behavior()  # Disable eager mode when running with TF2.
   app.run(main)
