@@ -7,14 +7,33 @@
   An illustration of SimCLR (from <a href="https://ai.googleblog.com/2020/04/advancing-self-supervised-and-semi.html">our blog here</a>).
 </div>
 
-<span style="color: red"><strong>News! </strong></span> We updated the code to reflect some changes in <a href="https://arxiv.org/abs/2006.10029">SimCLRv2</a>. The pre-trained and fine-tuned checkpoints for SimCLRv2 are also released (see below).
+<br/><br/>
+<span style="color: red"><strong>News! </strong></span> We updated the code to reflect some changes in <a href="https://arxiv.org/abs/2006.10029">SimCLRv2</a>. The SimCLRv2 checkpoints and accompanying colabs are also released (see below).
 
 ## Pre-trained models for SimCLRv2
 <a href="https://colab.research.google.com/github/google-research/simclr/blob/master/colabs/finetuning.ipynb" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
 
-We opensourced total 65 pretrained models here, corresponding to those in Table 1 of the <a href="https://arxiv.org/abs/2006.10029">SimCLRv2</a> paper. The checkpoints are stored in Google Cloud Storage and can be found below.
+We opensourced total 65 pretrained models here, corresponding to those in Table 1 of the <a href="https://arxiv.org/abs/2006.10029">SimCLRv2</a> paper:
 
-* Pretrained SimCLRv2 models with a linear classifier: [gs://simclr-checkpoints/simclrv2/pretrained](https://console.cloud.google.com/storage/browser/simclr-checkpoints/simclrv2/pretrained)
+|   Depth | Width   | SK    |   Param |   F-T (1%) |   F-T(10%) |   F-T(100%) |   Linear eval |   Supervised |
+|--------:|--------:|------:|--------:|-------------:|--------------:|---------------:|-----------------:|--------------:|
+|      50 | 1X      | False |    24 |         57.9 |          68.4 |           76.3 |             71.7 |          76.6 |
+|      50 | 1X      | True  |    35 |         64.5 |          72.1 |           78.7 |             74.6 |          78.5 |
+|      50 | 2X      | False |    94   |         66.3 |          73.9 |           79.1 |             75.6 |          77.8 |
+|      50 | 2X      | True  |   140 |         70.6 |          77.0   |           81.3 |             77.7 |          79.3 |
+|     101 | 1X      | False |    43 |         62.1 |          71.4 |           78.2 |             73.6 |          78.0   |
+|     101 | 1X      | True  |    65 |         68.3 |          75.1 |           80.6 |             76.3 |          79.6 |
+|     101 | 2X      | False |   170   |         69.1 |          75.8 |           80.7 |             77.0   |          78.9 |
+|     101 | 2X      | True  |   257 |         73.2 |          78.8 |           82.4 |             79.0   |          80.1 |
+|     152 | 1X      | False |    58 |         64.0   |          73.0   |           79.3 |             74.5 |          78.3 |
+|     152 | 1X      | True  |    89 |         70.0   |          76.5 |           81.3 |             77.2 |          79.9 |
+|     152 | 2X      | False |   233 |         70.2 |          76.6 |           81.1 |             77.4 |          79.1 |
+|     152 | 2X      | True  |   354 |         74.2 |          79.4 |           82.9 |             79.4 |          80.4 |
+|     152 | 3X      | True  |   795 |         74.9 |          80.1 |           83.1 |             79.8 |          80.5 |
+
+These checkpoints are stored in Google Cloud Storage:
+
+* Pretrained SimCLRv2 models (with linear eval head): [gs://simclr-checkpoints/simclrv2/pretrained](https://console.cloud.google.com/storage/browser/simclr-checkpoints/simclrv2/pretrained)
 * Fine-tuned SimCLRv2 models on 1% of labels: [gs://simclr-checkpoints/simclrv2/finetuned_1pct](https://console.cloud.google.com/storage/browser/simclr-checkpoints/simclrv2/finetuned_1pct)
 * Fine-tuned SimCLRv2 models on 10% of labels: [gs://simclr-checkpoints/simclrv2/finetuned_10pct](https://console.cloud.google.com/storage/browser/simclr-checkpoints/simclrv2/finetuned_10pct)
 * Fine-tuned SimCLRv2 models on 100% of labels: [gs://simclr-checkpoints/simclrv2/finetuned_100pct](https://console.cloud.google.com/storage/browser/simclr-checkpoints/simclrv2/finetuned_100pct)
