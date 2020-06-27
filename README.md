@@ -15,7 +15,7 @@
 
 We opensourced total 65 pretrained models here, corresponding to those in Table 1 of the <a href="https://arxiv.org/abs/2006.10029">SimCLRv2</a> paper:
 
-|   Depth | Width   | SK    |   Param |   F-T (1%) |   F-T(10%) |   F-T(100%) |   Linear eval |   Supervised |
+|   Depth | Width   | SK    |   Param (M) |   F-T (1%) |   F-T(10%) |   F-T(100%) |   Linear eval |   Supervised |
 |--------:|--------:|------:|--------:|-------------:|--------------:|---------------:|-----------------:|--------------:|
 |      50 | 1X      | False |    24 |         57.9 |          68.4 |           76.3 |             71.7 |          76.6 |
 |      50 | 1X      | True  |    35 |         64.5 |          72.1 |           78.7 |             74.6 |          78.5 |
