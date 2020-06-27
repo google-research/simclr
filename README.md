@@ -18,7 +18,7 @@ We opensourced total 65 pretrained models here, corresponding to those in Table 
 * Fine-tuned SimCLRv2 models on 1% of labels: [gs://simclr-checkpoints/simclrv2/finetuned_1pct](https://console.cloud.google.com/storage/browser/simclr-checkpoints/simclrv2/finetuned_1pct)
 * Fine-tuned SimCLRv2 models on 10% of labels: [gs://simclr-checkpoints/simclrv2/finetuned_10pct](https://console.cloud.google.com/storage/browser/simclr-checkpoints/simclrv2/finetuned_10pct)
 * Fine-tuned SimCLRv2 models on 100% of labels: [gs://simclr-checkpoints/simclrv2/finetuned_100pct](https://console.cloud.google.com/storage/browser/simclr-checkpoints/simclrv2/finetuned_100pct)
-* Supervised models with the same architectures: [gs://simclr-checkpoints/simclrv2/pretrained](https://console.cloud.google.com/storage/browser/simclr-checkpoints/simclrv2/pretrained)
+* Supervised models with the same architectures: [gs://simclr-checkpoints/simclrv2/supervised](https://console.cloud.google.com/storage/browser/simclr-checkpoints/simclrv2/supervised)
 
 We also provide examples on how to use the checkpoints in `colabs/` folder.
 
