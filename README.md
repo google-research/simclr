@@ -7,11 +7,20 @@
   An illustration of SimCLR (from <a href="https://ai.googleblog.com/2020/04/advancing-self-supervised-and-semi.html">our blog here</a>).
 </div>
 
-[News] June 17, 2020, we updated the code to reflect some changes in <a href="https://arxiv.org/abs/2006.10029">SimCLRv2</a>. The pre-trained and fine-tuned checkpoints for SimCLRv2 will be released soon. Stay tuned!
+<span style="color: red"><strong>News! </strong></span> We updated the code to reflect some changes in <a href="https://arxiv.org/abs/2006.10029">SimCLRv2</a>. The pre-trained and fine-tuned checkpoints for SimCLRv2 are also released (see below).
 
 ## Pre-trained models for SimCLRv2
+<a href="https://colab.research.google.com/github/google-research/simclr/blob/master/colabs/finetuning.ipynb" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
 
-Release soon. Stay tuned!
+We opensourced total 65 pretrained models here, corresponding to those in Table 1 of the <a href="https://arxiv.org/abs/2006.10029">SimCLRv2</a> paper. The checkpoints are stored in Google Cloud Storage and can be found below.
+
+* Pretrained SimCLRv2 models with a linear classifier: [gs://simclr-checkpoints/simclrv2/pretrained](https://console.cloud.google.com/storage/browser/simclr-checkpoints/simclrv2/pretrained)
+* Fine-tuned SimCLRv2 models on 1% of labels: [gs://simclr-checkpoints/simclrv2/finetuned_1pct](https://console.cloud.google.com/storage/browser/simclr-checkpoints/simclrv2/finetuned_1pct)
+* Fine-tuned SimCLRv2 models on 10% of labels: [gs://simclr-checkpoints/simclrv2/finetuned_10pct](https://console.cloud.google.com/storage/browser/simclr-checkpoints/simclrv2/finetuned_10pct)
+* Fine-tuned SimCLRv2 models on 100% of labels: [gs://simclr-checkpoints/simclrv2/finetuned_100pct](https://console.cloud.google.com/storage/browser/simclr-checkpoints/simclrv2/finetuned_100pct)
+* Supervised models with the same architectures: [gs://simclr-checkpoints/simclrv2/pretrained](https://console.cloud.google.com/storage/browser/simclr-checkpoints/simclrv2/pretrained)
+
+We also provide examples on how to use the checkpoints in `colabs/` folder.
 
 ## Pre-trained models for SimCLRv1
 

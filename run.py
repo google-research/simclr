@@ -207,9 +207,9 @@ flags.DEFINE_integer(
     'Number of non-linear head layers.')
 
 flags.DEFINE_integer(
-    'ft_proj_selector', -1,
+    'ft_proj_selector', 0,
     'Which layer of the projection head to use during fine-tuning. '
-    '0 means no projection head, and -1 means the final layer.')
+    '0 means throwing away the projection head, and -1 means the final layer.')
 
 flags.DEFINE_boolean(
     'global_bn', True,
