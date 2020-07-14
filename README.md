@@ -172,7 +172,12 @@ This [repo](https://github.com/tonylins/simclr-converter) provides a solution fo
 
 (Feel free to share your implementation by creating an issue)
 
-This [repo](https://github.com/sayakpaul/SimCLR-in-TensorFlow-2) provides a minimal TF2 Keras implementation.
+Implementations in PyTorch:
+* [leftthomas](https://github.com/leftthomas/SimCLR)
+* [Spijkervet](https://github.com/Spijkervet/SimCLR)
+
+Implementations in Tensorflow 2:
+* [sayakpaul](https://github.com/sayakpaul/SimCLR-in-TensorFlow-2)
 
 ## Cite
 
