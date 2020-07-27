@@ -168,7 +168,7 @@ Set the `checkpoint` to those that are only pre-trained but not fine-tuned. Give
 
 This [repo](https://github.com/tonylins/simclr-converter) provides a solution for converting the pretrained Tensorflow checkpoints into Pytorch ones.
 
-### Other non-offical implementations
+### Other *non-offical* implementations
 
 (Feel free to share your implementation by creating an issue)
 
@@ -176,8 +176,9 @@ Implementations in PyTorch:
 * [leftthomas](https://github.com/leftthomas/SimCLR)
 * [Spijkervet](https://github.com/Spijkervet/SimCLR)
 
-Implementations in Tensorflow 2:
+Implementations in Tensorflow 2 / Keras:
 * [sayakpaul](https://github.com/sayakpaul/SimCLR-in-TensorFlow-2)
+* [mwdhont](https://github.com/mwdhont/SimCLRv1-keras-tensorflow)
 
 ## Cite
 
