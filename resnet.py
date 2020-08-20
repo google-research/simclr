@@ -371,10 +371,10 @@ def residual_block(inputs, filters, is_training, strides,
     if FLAGS.sk_ratio > 0:  # Use ResNet-D (https://arxiv.org/abs/1812.01187)
       if strides > 1:
         inputs = fixed_padding(inputs, 2, data_format)
-      inputs = tf.layers.average_pooling2d(
+        inputs = tf.layers.average_pooling2d(
           inputs, pool_size=2, strides=strides,
           padding='SAME' if strides == 1 else 'VALID', data_format=data_format)
-      shortcut = conv2d_fixed_padding(
+        shortcut = conv2d_fixed_padding(
           inputs=inputs, filters=filters, kernel_size=1, strides=1,
           data_format=data_format)
     else:
