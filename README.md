@@ -175,6 +175,7 @@ This [repo](https://github.com/tonylins/simclr-converter) provides a solution fo
 Implementations in PyTorch:
 * [leftthomas](https://github.com/leftthomas/SimCLR)
 * [Spijkervet](https://github.com/Spijkervet/SimCLR)
+* [williamFalcon (PyTorch Lightning)](https://pytorch-lightning-bolts.readthedocs.io/en/latest/self_supervised_models.html#simclr)
 
 Implementations in Tensorflow 2 / Keras:
 * [sayakpaul](https://github.com/sayakpaul/SimCLR-in-TensorFlow-2)
