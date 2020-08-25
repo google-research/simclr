@@ -38,6 +38,9 @@ These checkpoints are stored in Google Cloud Storage:
 * Fine-tuned SimCLRv2 models on 10% of labels: [gs://simclr-checkpoints/simclrv2/finetuned_10pct](https://console.cloud.google.com/storage/browser/simclr-checkpoints/simclrv2/finetuned_10pct)
 * Fine-tuned SimCLRv2 models on 100% of labels: [gs://simclr-checkpoints/simclrv2/finetuned_100pct](https://console.cloud.google.com/storage/browser/simclr-checkpoints/simclrv2/finetuned_100pct)
 * Supervised models with the same architectures: [gs://simclr-checkpoints/simclrv2/supervised](https://console.cloud.google.com/storage/browser/simclr-checkpoints/simclrv2/supervised)
+* The distilled / self-trained models (after fine-tuning) are also provided:
+  * [gs://simclr-checkpoints/simclrv2/distill_1pct](https://console.cloud.google.com/storage/browser/simclr-checkpoints/simclrv2/distill_1pct)
+  * [gs://simclr-checkpoints/simclrv2/distill_10pct](https://console.cloud.google.com/storage/browser/simclr-checkpoints/simclrv2/distill_10pct)
 
 We also provide examples on how to use the checkpoints in `colabs/` folder.
 
@@ -50,6 +53,8 @@ The pre-trained models (base network with linear classifier layer) can be found 
 |[ResNet50 (1x)](https://storage.cloud.google.com/simclr-gcs/checkpoints/ResNet50_1x.zip) |          69.1          |
 |[ResNet50 (2x)](https://storage.cloud.google.com/simclr-gcs/checkpoints/ResNet50_2x.zip) |          74.2          |
 |[ResNet50 (4x)](https://storage.cloud.google.com/simclr-gcs/checkpoints/ResNet50_4x.zip) |          76.6          |
+
+Additional SimCLRv1 checkpoints are available: [gs://simclr-checkpoints/simclrv1](https://console.cloud.google.com/storage/browser/simclr-checkpoints/simclrv1).
 
 A note on the signatures of the TensorFlow Hub module: `default` is the representation output of the base network; `logits_sup` is the supervised classification logits for ImageNet 1000 categories. Others (e.g. `initial_max_pool`, `block_group1`) are middle layers of ResNet; refer to resnet.py for the specifics. See this [tutorial](https://www.tensorflow.org/hub/tf1_hub_module) for additional information regarding use of TensorFlow Hub modules.
 

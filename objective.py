@@ -19,13 +19,9 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from absl import flags
-
 import tensorflow.compat.v1 as tf
 
 from tensorflow.compiler.tf2xla.python import xla  # pylint: disable=g-direct-tensorflow-import
-
-FLAGS = flags.FLAGS
 
 LARGE_NUM = 1e9
 
@@ -43,7 +39,7 @@ def add_contrastive_loss(hidden,
   """Compute loss for model.
 
   Args:
-    hidden: hidden vector (`Tensor`) of shape (bsz, dim).
+    hidden: hidden vector (`Tensor`) of shape (2 * bsz, dim).
     hidden_norm: whether or not to use normalization on the hidden vector.
     temperature: a `floating` number for temperature scaling.
     tpu_context: context information for tpu.
