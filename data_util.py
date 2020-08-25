@@ -45,7 +45,7 @@ def random_brightness(image, max_delta, impl='simclrv2'):
         [], tf.maximum(1.0 - max_delta, 0), 1.0 + max_delta)
     image = image * factor
   elif impl == 'simclrv1':
-    image = random_brightness(image, max_delta=max_delta)
+    image = tf.image.random_brightness(image, max_delta=max_delta)
   else:
     raise ValueError('Unknown impl {} for random brightness.'.format(impl))
   return image
@@ -58,15 +58,15 @@ def to_grayscale(image, keep_channels=True):
   return image
 
 
-def color_jitter(image,
-                 strength,
-                 random_order=True):
+def color_jitter(image, strength, random_order=True, impl='simclrv2'):
   """Distorts the color of the image.
 
   Args:
     image: The input image tensor.
     strength: the floating number for the strength of the color augmentation.
     random_order: A bool, specifying whether to randomize the jittering order.
+    impl: 'simclrv1' or 'simclrv2'.  Whether to use simclrv1 or simclrv2's
+        version of random brightness.
 
   Returns:
     The distorted image tensor.
@@ -76,12 +76,19 @@ def color_jitter(image,
   saturation = 0.8 * strength
   hue = 0.2 * strength
   if random_order:
-    return color_jitter_rand(image, brightness, contrast, saturation, hue)
+    return color_jitter_rand(
+        image, brightness, contrast, saturation, hue, impl=impl)
   else:
-    return color_jitter_nonrand(image, brightness, contrast, saturation, hue)
+    return color_jitter_nonrand(
+        image, brightness, contrast, saturation, hue, impl=impl)
 
 
-def color_jitter_nonrand(image, brightness=0, contrast=0, saturation=0, hue=0):
+def color_jitter_nonrand(image,
+                         brightness=0,
+                         contrast=0,
+                         saturation=0,
+                         hue=0,
+                         impl='simclrv2'):
   """Distorts the color of the image (jittering order is fixed).
 
   Args:
@@ -90,6 +97,8 @@ def color_jitter_nonrand(image, brightness=0, contrast=0, saturation=0, hue=0):
     contrast: A float, specifying the contrast for color jitter.
     saturation: A float, specifying the saturation for color jitter.
     hue: A float, specifying the hue for color jitter.
+    impl: 'simclrv1' or 'simclrv2'.  Whether to use simclrv1 or simclrv2's
+        version of random brightness.
 
   Returns:
     The distorted image tensor.
@@ -98,7 +107,7 @@ def color_jitter_nonrand(image, brightness=0, contrast=0, saturation=0, hue=0):
     def apply_transform(i, x, brightness, contrast, saturation, hue):
       """Apply the i-th transformation."""
       if brightness != 0 and i == 0:
-        x = random_brightness(x, max_delta=brightness)
+        x = random_brightness(x, max_delta=brightness, impl=impl)
       elif contrast != 0 and i == 1:
         x = tf.image.random_contrast(
             x, lower=1-contrast, upper=1+contrast)
@@ -115,7 +124,12 @@ def color_jitter_nonrand(image, brightness=0, contrast=0, saturation=0, hue=0):
     return image
 
 
-def color_jitter_rand(image, brightness=0, contrast=0, saturation=0, hue=0):
+def color_jitter_rand(image,
+                      brightness=0,
+                      contrast=0,
+                      saturation=0,
+                      hue=0,
+                      impl='simclrv2'):
   """Distorts the color of the image (jittering order is random).
 
   Args:
@@ -124,6 +138,8 @@ def color_jitter_rand(image, brightness=0, contrast=0, saturation=0, hue=0):
     contrast: A float, specifying the contrast for color jitter.
     saturation: A float, specifying the saturation for color jitter.
     hue: A float, specifying the hue for color jitter.
+    impl: 'simclrv1' or 'simclrv2'.  Whether to use simclrv1 or simclrv2's
+        version of random brightness.
 
   Returns:
     The distorted image tensor.
@@ -135,7 +151,8 @@ def color_jitter_rand(image, brightness=0, contrast=0, saturation=0, hue=0):
         if brightness == 0:
           return x
         else:
-          return random_brightness(x, max_delta=brightness)
+          return random_brightness(x, max_delta=brightness, impl=impl)
+
       def contrast_foo():
         if contrast == 0:
           return x
@@ -367,10 +384,11 @@ def random_crop_with_resize(image, height, width, p=1.0):
   return random_apply(_transform, p=p, x=image)
 
 
-def random_color_jitter(image, p=1.0):
+def random_color_jitter(image, p=1.0, impl='simclrv2'):
+
   def _transform(image):
     color_jitter_t = functools.partial(
-        color_jitter, strength=FLAGS.color_jitter_strength)
+        color_jitter, strength=FLAGS.color_jitter_strength, impl=impl)
     image = random_apply(color_jitter_t, p=0.8, x=image)
     return random_apply(to_grayscale, p=0.2, x=image)
   return random_apply(_transform, p=p, x=image)
@@ -426,8 +444,13 @@ def batch_random_blur(images_list, height, width, blur_probability=0.5):
   return new_images_list
 
 
-def preprocess_for_train(image, height, width,
-                         color_distort=True, crop=True, flip=True):
+def preprocess_for_train(image,
+                         height,
+                         width,
+                         color_distort=True,
+                         crop=True,
+                         flip=True,
+                         impl='simclrv2'):
   """Preprocesses the given image for training.
 
   Args:
@@ -437,6 +460,8 @@ def preprocess_for_train(image, height, width,
     color_distort: Whether to apply the color distortion.
     crop: Whether to crop the image.
     flip: Whether or not to flip left and right of an image.
+    impl: 'simclrv1' or 'simclrv2'.  Whether to use simclrv1 or simclrv2's
+        version of random brightness.
 
   Returns:
     A preprocessed image `Tensor`.
@@ -446,7 +471,7 @@ def preprocess_for_train(image, height, width,
   if flip:
     image = tf.image.random_flip_left_right(image)
   if color_distort:
-    image = random_color_jitter(image)
+    image = random_color_jitter(image, impl=impl)
   image = tf.reshape(image, [height, width, 3])
   image = tf.clip_by_value(image, 0., 1.)
   return image
