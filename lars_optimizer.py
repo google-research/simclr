@@ -81,10 +81,6 @@ class LARSOptimizer(tf.train.Optimizer):
       self.exclude_from_layer_adaptation = exclude_from_weight_decay
 
   def apply_gradients(self, grads_and_vars, global_step=None, name=None):
-    if global_step is None:
-      global_step = tf.train.get_or_create_global_step()
-    new_global_step = global_step + 1
-
     assignments = []
     for (grad, param) in grads_and_vars:
       if grad is None or param is None:
@@ -139,10 +135,11 @@ class LARSOptimizer(tf.train.Optimizer):
         scaled_lr = trust_ratio * self.learning_rate
         next_param = param - scaled_lr * update
 
-      assignments.extend(
-          [param.assign(next_param),
-           v.assign(next_v),
-           global_step.assign(new_global_step)])
+      assignments.extend([param.assign(next_param), v.assign(next_v)])
+
+      if global_step is not None:
+        new_global_step = global_step + 1
+        assignments.append(global_step.assign(new_global_step))
     return tf.group(*assignments, name=name)
 
   def _use_weight_decay(self, param_name):
