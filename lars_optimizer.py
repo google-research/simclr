@@ -137,9 +137,9 @@ class LARSOptimizer(tf.train.Optimizer):
 
       assignments.extend([param.assign(next_param), v.assign(next_v)])
 
-      if global_step is not None:
-        new_global_step = global_step + 1
-        assignments.append(global_step.assign(new_global_step))
+    if global_step is not None:
+      new_global_step = global_step + 1
+      assignments.append(global_step.assign(new_global_step))
     return tf.group(*assignments, name=name)
 
   def _use_weight_decay(self, param_name):
