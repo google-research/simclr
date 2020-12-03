@@ -8,6 +8,8 @@
 </div>
 
 <br/><br/>
+<span style="color: red"><strong>News! </strong></span> We have released a TF2 implementation of SimCLR (alone with converted checkpoints in TF2), they are in <a href="https://github.com/google-research/simclr/tree/master/tf2">tf/ folder</a>.
+
 <span style="color: red"><strong>News! </strong></span> Colabs for <a href="https://arxiv.org/abs/2011.02803">Intriguing Properties of Contrastive Losses</a> are added, see <a href="https://github.com/google-research/simclr/tree/master/colabs/intriguing_properties">here</a>.
 
 <span style="color: red"><strong>News! </strong></span> We updated the code to reflect some changes in <a href="https://arxiv.org/abs/2006.10029">SimCLRv2</a>. The SimCLRv2 checkpoints and accompanying colabs are also released (see below).
