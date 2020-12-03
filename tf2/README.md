@@ -1,4 +1,4 @@
-# SimCLR - A Simple Framework for Contrastive Learning of Visual Representations
+# TF2 implementation of SimCLR
 
 This implementation is based on TensorFlow 2.x. We use `tf.keras` layers for building the model and use `tf.data` for our input pipeline. The model is trained using a [custom training loop](https://www.tensorflow.org/tutorials/distribute/custom_training) with `tf.distribute` on multiple TPUs.
 
@@ -92,7 +92,9 @@ A batch size of 4096 requires at least 32 TPUs. 100 epochs takes around 6 hours 
 
 ## Finetuning the linear head (linear eval)
 
-You can finetune a linear head on top of a pretrained model as follows:
+You could simply set `--lineareval_while_pretraining=True` during pretraining, which will train the linear classifier as you pretrain the model. The `stop_gradient` operator is uesd to prevent backpropagating the label information to representations.
+
+More conventionally, you can also finetune the linear head on top of a pretrained model after pretraining, as follows:
 
 ```
 class Model(tf.keras.Model):
