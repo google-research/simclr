@@ -55,7 +55,7 @@ pip install -r requirements.txt
 
 ## Pretraining
 
-To pretrain the model on CIFAR-10 with a *single* GPU, try the following command:
+To pretrain the model on CIFAR-10 with CPU / 1 or more GPUs, try the following command:
 
 ```
 python run.py --train_mode=pretrain \
