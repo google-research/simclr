@@ -1,0 +1,3 @@
+absl-py
+tensorflow==2.4.0
+tensorflow-datasets==4.1.0
