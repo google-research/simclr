@@ -182,10 +182,11 @@ This [repo](https://github.com/Separius/SimCLRv2-Pytorch) provides a solution fo
 
 Implementations in PyTorch:
 * [leftthomas](https://github.com/leftthomas/SimCLR)
+* [AndrewAtanov](https://github.com/AndrewAtanov/simclr-pytorch)
 * [Spijkervet](https://github.com/Spijkervet/SimCLR)
 * [williamFalcon](https://pytorch-lightning-bolts.readthedocs.io/en/latest/self_supervised_models.html#simclr)
 
-Implementations in Tensorflow 2 / Keras:
+Implementations in Tensorflow 2 / Keras (official TF2 implementation was added in <a href="https://github.com/google-research/simclr/tree/master/tf2">tf2/ folder</a>):
 * [sayakpaul](https://github.com/sayakpaul/SimCLR-in-TensorFlow-2)
 * [mwdhont](https://github.com/mwdhont/SimCLRv1-keras-tensorflow)
 
