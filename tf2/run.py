@@ -496,7 +496,7 @@ def main(argv):
     logging.info('Topology:')
     logging.info('num_tasks: %d', topology.num_tasks)
     logging.info('num_tpus_per_task: %d', topology.num_tpus_per_task)
-    strategy = tf.distribute.experimental.TPUStrategy(cluster)
+    strategy = tf.distribute.TPUStrategy(cluster)
 
   else:
     # For (multiple) GPUs.

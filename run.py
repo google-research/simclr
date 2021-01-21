@@ -334,8 +334,22 @@ def perform_evaluation(estimator, input_fn, eval_steps, model, num_classes,
   with tf.io.gfile.GFile(result_json_path, 'w') as f:
     json.dump({k: float(v) for k, v in result.items()}, f)
   flag_json_path = os.path.join(FLAGS.model_dir, 'flags.json')
+
+  def json_serializable(val):
+    try:
+      json.dumps(val)
+      return True
+    except TypeError:
+      return False
+
   with tf.io.gfile.GFile(flag_json_path, 'w') as f:
-    json.dump(FLAGS.flag_values_dict(), f)
+    serializable_flags = {}
+    for key, val in FLAGS.flag_values_dict().items():
+      # Some flag value types e.g. datetime.timedelta are not json serializable,
+      # filter those out.
+      if json_serializable(val):
+        serializable_flags[key] = val
+    json.dump(serializable_flags, f)
 
   # Save Hub module.
   build_hub_module(model, num_classes,
