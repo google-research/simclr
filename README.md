@@ -183,6 +183,7 @@ This [repo](https://github.com/Separius/SimCLRv2-Pytorch) provides a solution fo
 Implementations in PyTorch:
 * [leftthomas](https://github.com/leftthomas/SimCLR)
 * [AndrewAtanov](https://github.com/AndrewAtanov/simclr-pytorch)
+* [ae-foster](https://github.com/ae-foster/pytorch-simclr)
 * [Spijkervet](https://github.com/Spijkervet/SimCLR)
 * [williamFalcon](https://pytorch-lightning-bolts.readthedocs.io/en/latest/self_supervised_models.html#simclr)
 
