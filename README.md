@@ -3,7 +3,6 @@
 <span style="color: red"><strong>News! </strong></span> We have released a TF2 implementation of SimCLR (along with converted checkpoints in TF2), they are in <a href="https://github.com/google-research/simclr/tree/master/tf2">tf2/ folder</a>.
 
 <span style="color: red"><strong>News! </strong></span> Colabs for <a href="https://arxiv.org/abs/2011.02803">Intriguing Properties of Contrastive Losses</a> are added, see <a href="https://github.com/google-research/simclr/tree/master/colabs/intriguing_properties">here</a>.
-
 <div align="center">
   <img width="50%" alt="SimCLR Illustration" src="https://1.bp.blogspot.com/--vH4PKpE9Yo/Xo4a2BYervI/AAAAAAAAFpM/vaFDwPXOyAokAC8Xh852DzOgEs22NhbXwCLcBGAsYHQ/s1600/image4.gif">
 </div>
@@ -170,7 +169,7 @@ Set the `checkpoint` to those that are only pre-trained but not fine-tuned. Give
 
 ## Other resources
 
-### Model convertion to Pytorch format
+### Model conversion to Pytorch format
 
 This [repo](https://github.com/tonylins/simclr-converter) provides a solution for converting the pretrained SimCLRv1 Tensorflow checkpoints into Pytorch ones.
 
