@@ -12,7 +12,7 @@ This implementation is based on TensorFlow 2.x. We use `tf.keras` layers for bui
 <br/><br/>
 
 ## Pre-trained models for SimCLRv2
-<a href="https://colab.research.google.com/github/google-research/simclr/blob/master/tf2/colabs/finetuning.ipynb" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
+<a href="tf2/colabs/finetuning.ipynb" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
 
 We have converted the checkpoints for the TF1 models of SimCLR v1 and v2 to TF2 [SavedModel](https://www.tensorflow.org/guide/saved_model):
 

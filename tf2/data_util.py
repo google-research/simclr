@@ -382,11 +382,12 @@ def random_crop_with_resize(image, height, width, p=1.0):
   return random_apply(_transform, p=p, x=image)
 
 
-def random_color_jitter(image, p=1.0, impl='simclrv2'):
+def random_color_jitter(image, p=1.0, strength=1.0,
+                        impl='simclrv2'):
 
   def _transform(image):
     color_jitter_t = functools.partial(
-        color_jitter, strength=FLAGS.color_jitter_strength, impl=impl)
+        color_jitter, strength=strength, impl=impl)
     image = random_apply(color_jitter_t, p=0.8, x=image)
     return random_apply(to_grayscale, p=0.2, x=image)
   return random_apply(_transform, p=p, x=image)
@@ -469,7 +470,8 @@ def preprocess_for_train(image,
   if flip:
     image = tf.image.random_flip_left_right(image)
   if color_distort:
-    image = random_color_jitter(image, impl=impl)
+    image = random_color_jitter(image, strength=FLAGS.color_jitter_strength,
+                                impl=impl)
   image = tf.reshape(image, [height, width, 3])
   image = tf.clip_by_value(image, 0., 1.)
   return image

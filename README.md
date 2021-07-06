@@ -1,8 +1,8 @@
 # SimCLR - A Simple Framework for Contrastive Learning of Visual Representations
 
-<span style="color: red"><strong>News! </strong></span> We have released a TF2 implementation of SimCLR (along with converted checkpoints in TF2), they are in <a href="https://github.com/google-research/simclr/tree/master/tf2">tf2/ folder</a>.
+<span style="color: red"><strong>News! </strong></span> We have released a TF2 implementation of SimCLR (along with converted checkpoints in TF2), they are in <a href="tf2/">tf2/ folder</a>.
 
-<span style="color: red"><strong>News! </strong></span> Colabs for <a href="https://arxiv.org/abs/2011.02803">Intriguing Properties of Contrastive Losses</a> are added, see <a href="https://github.com/google-research/simclr/tree/master/colabs/intriguing_properties">here</a>.
+<span style="color: red"><strong>News! </strong></span> Colabs for <a href="https://arxiv.org/abs/2011.02803">Intriguing Properties of Contrastive Losses</a> are added, see <a href="colabs/intriguing_properties/">here</a>.
 
 <div align="center">
   <img width="50%" alt="SimCLR Illustration" src="https://1.bp.blogspot.com/--vH4PKpE9Yo/Xo4a2BYervI/AAAAAAAAFpM/vaFDwPXOyAokAC8Xh852DzOgEs22NhbXwCLcBGAsYHQ/s1600/image4.gif">
@@ -12,7 +12,7 @@
 </div>
 
 ## Pre-trained models for SimCLRv2
-<a href="https://colab.research.google.com/github/google-research/simclr/blob/master/colabs/finetuning.ipynb" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
+<a href="colabs/finetuning.ipynb" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
 
 We opensourced total 65 pretrained models here, corresponding to those in Table 1 of the <a href="https://arxiv.org/abs/2006.10029">SimCLRv2</a> paper:
 
@@ -170,7 +170,7 @@ Set the `checkpoint` to those that are only pre-trained but not fine-tuned. Give
 
 ## Other resources
 
-### Model convertion to Pytorch format
+### Model conversion to Pytorch format
 
 This [repo](https://github.com/tonylins/simclr-converter) provides a solution for converting the pretrained SimCLRv1 Tensorflow checkpoints into Pytorch ones.
 
@@ -187,9 +187,15 @@ Implementations in PyTorch:
 * [Spijkervet](https://github.com/Spijkervet/SimCLR)
 * [williamFalcon](https://pytorch-lightning-bolts.readthedocs.io/en/latest/self_supervised_models.html#simclr)
 
-Implementations in Tensorflow 2 / Keras (official TF2 implementation was added in <a href="https://github.com/google-research/simclr/tree/master/tf2">tf2/ folder</a>):
+Implementations in Tensorflow 2 / Keras (official TF2 implementation was added in <a href="tf2/">tf2/ folder</a>):
 * [sayakpaul](https://github.com/sayakpaul/SimCLR-in-TensorFlow-2)
 * [mwdhont](https://github.com/mwdhont/SimCLRv1-keras-tensorflow)
+
+## Known issues
+
+* **Batch size**: original results of SimCLR were tuned under a large batch size (i.e. 4096), which leads to suboptimal results when training using a smaller batch size. However, with a good set of hyper-parameters (mainly learning rate, temperature, projection head depth), small batch sizes can yield results that are on par with large batch sizes (e.g., see Table 2 in [this paper](https://arxiv.org/pdf/2011.02803.pdf)).
+
+* **Pretrained models / Checkpoints**: SimCLRv1 and SimCLRv2 are pretrained with different weight decays, so the pretrained models from the two versions have very different weight norm scales (convolutional weights in SimCLRv1 ResNet-50 are on average 16.8X of that in SimCLRv2). For fine-tuning the pretrained models from both versions, it is fine if you use an LARS optimizer, but it requires very different hyperparameters (e.g. learning rate, weight decay) if you use the momentum optimizer. So for the latter case, you may want to either search for very different hparams according to which version used, or re-scale th weight (i.e. conv `kernel` parameters of `base_model` in the checkpoints) to make sure they're roughly in the same scale.
 
 ## Cite
 

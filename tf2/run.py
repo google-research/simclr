@@ -238,7 +238,7 @@ flags.DEFINE_boolean(
     'Whether or not to use Gaussian blur for augmentation during pretraining.')
 
 
-def get_salient_tensors_dict():
+def get_salient_tensors_dict(include_projection_head):
   """Returns a dictionary of tensors."""
   graph = tf.compat.v1.get_default_graph()
   result = {}
@@ -252,11 +252,15 @@ def get_salient_tensors_dict():
   result['final_avg_pool'] = graph.get_tensor_by_name('resnet/final_avg_pool:0')
   result['logits_sup'] = graph.get_tensor_by_name(
       'head_supervised/logits_sup:0')
-
+  if include_projection_head:
+    result['proj_head_input'] = graph.get_tensor_by_name(
+        'projection_head/proj_head_input:0')
+    result['proj_head_output'] = graph.get_tensor_by_name(
+        'projection_head/proj_head_output:0')
   return result
 
 
-def build_saved_model(model):
+def build_saved_model(model, include_projection_head=True):
   """Returns a tf.Module for saving to SavedModel."""
 
   class SimCLRModel(tf.Module):
@@ -271,7 +275,7 @@ def build_saved_model(model):
     @tf.function
     def __call__(self, inputs, trainable):
       self.model(inputs, training=trainable)
-      return get_salient_tensors_dict()
+      return get_salient_tensors_dict(include_projection_head)
 
   module = SimCLRModel(model)
   input_spec = tf.TensorSpec(shape=[None, None, None, 3], dtype=tf.float32)
@@ -423,8 +427,7 @@ def perform_evaluation(model, builder, eval_steps, ckpt, strategy, topology):
     json.dump(serializable_flags, f)
 
   # Export as SavedModel for finetuning and inference.
-  if FLAGS.train_mode == 'finetune':
-    save(model, global_step=result['global_step'])
+  save(model, global_step=result['global_step'])
 
   return result
 

@@ -21,6 +21,7 @@ from absl import logging
 
 import data_util
 import tensorflow.compat.v2 as tf
+import tensorflow_datasets as tfds
 
 FLAGS = flags.FLAGS
 
@@ -60,27 +61,32 @@ def build_input_fn(builder, global_batch_size, topology, is_training):
       label = tf.one_hot(label, num_classes)
       return image, label
 
+    logging.info('num_input_pipelines: %d', input_context.num_input_pipelines)
     dataset = builder.as_dataset(
         split=FLAGS.train_split if is_training else FLAGS.eval_split,
         shuffle_files=is_training,
-        as_supervised=True)
-    logging.info('num_input_pipelines: %d', input_context.num_input_pipelines)
-    # The dataset is always sharded by number of hosts.
-    # num_input_pipelines is the number of hosts rather than number of cores.
-    if input_context.num_input_pipelines > 1:
-      dataset = dataset.shard(input_context.num_input_pipelines,
-                              input_context.input_pipeline_id)
+        as_supervised=True,
+        # Passing the input_context to TFDS makes TFDS read different parts
+        # of the dataset on different workers. We also adjust the interleave
+        # parameters to achieve better performance.
+        read_config=tfds.ReadConfig(
+            interleave_cycle_length=32,
+            interleave_block_length=1,
+            input_context=input_context))
     if FLAGS.cache_dataset:
       dataset = dataset.cache()
     if is_training:
+      options = tf.data.Options()
+      options.experimental_deterministic = False
+      options.experimental_slack = True
+      dataset = dataset.with_options(options)
       buffer_multiplier = 50 if FLAGS.image_size <= 32 else 10
       dataset = dataset.shuffle(batch_size * buffer_multiplier)
       dataset = dataset.repeat(-1)
     dataset = dataset.map(
         map_fn, num_parallel_calls=tf.data.experimental.AUTOTUNE)
     dataset = dataset.batch(batch_size, drop_remainder=is_training)
-    prefetch_buffer_size = 2 * topology.num_tpus_per_task if topology else 2
-    dataset = dataset.prefetch(prefetch_buffer_size)
+    dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
     return dataset
 
   return _input_fn

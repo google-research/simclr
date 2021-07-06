@@ -128,23 +128,22 @@ class LinearLayer(tf.keras.layers.Layer):
     # However, it is still used for batch norm.
     super(LinearLayer, self).__init__(**kwargs)
     self.num_classes = num_classes
+    self.use_bias = use_bias
     self.use_bn = use_bn
     self._name = name
-    if callable(self.num_classes):
-      num_classes = -1
-    else:
-      num_classes = self.num_classes
-    self.dense = tf.keras.layers.Dense(
-        num_classes,
-        kernel_initializer=tf.keras.initializers.RandomNormal(stddev=0.01),
-        use_bias=use_bias and not self.use_bn)
     if self.use_bn:
       self.bn_relu = resnet.BatchNormRelu(relu=False, center=use_bias)
 
   def build(self, input_shape):
     # TODO(srbs): Add a new SquareDense layer.
     if callable(self.num_classes):
-      self.dense.units = self.num_classes(input_shape)
+      num_classes = self.num_classes(input_shape)
+    else:
+      num_classes = self.num_classes
+    self.dense = tf.keras.layers.Dense(
+        num_classes,
+        kernel_initializer=tf.keras.initializers.RandomNormal(stddev=0.01),
+        use_bias=self.use_bias and not self.use_bn)
     super(LinearLayer, self).build(input_shape)
 
   def call(self, inputs, training):
@@ -242,13 +241,14 @@ class Model(tf.keras.models.Model):
   def __call__(self, inputs, training):
     features = inputs
     if training and FLAGS.train_mode == 'pretrain':
-      num_transforms = 2
       if FLAGS.fine_tune_after_block > -1:
         raise ValueError('Does not support layer freezing during pretraining,'
                          'should set fine_tune_after_block<=-1 for safety.')
-    else:
-      num_transforms = 1
-
+    if inputs.shape[3] is None:
+      raise ValueError('The input channels dimension must be statically known '
+                       f'(got input shape {inputs.shape})')
+    num_transforms = inputs.shape[3] // 3
+    num_transforms = tf.repeat(3, num_transforms)
     # Split channels, and optionally apply extra batched augmentation.
     features_list = tf.split(
         features, num_or_size_splits=num_transforms, axis=-1)
