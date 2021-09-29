@@ -22,9 +22,9 @@ touch $DOCKER_BASH_HISTORY
 DOCKER_IMAGE="simclr"
 
 # docker aliases
-alias simclr_docker_build="docker build -t $DOCKER_IMAGE $SIMCLR_REPO_DIR/developer_env/simclr"
+alias simclr_docker_build="docker build -t $DOCKER_IMAGE $SIMCLR_REPO_DIR/developer_env/docker"
 
-alias simclr_docker_build_gpu="docker build --build-arg base_image=tensorflow/tensorflow:2.6.0-gpu-jupyter -t $DOCKER_IMAGE $SIMCLR_REPO_DIR/developer_env/simclr"
+alias simclr_docker_build_gpu="docker build --build-arg base_image=tensorflow/tensorflow:2.6.0-gpu-jupyter -t $DOCKER_IMAGE $SIMCLR_REPO_DIR/developer_env/docker"
 
 alias simclr_run="docker run -it --rm \
     -v $SIMCLR_REPO_DIR:/simclr \
