@@ -398,7 +398,7 @@ def perform_evaluation(model, builder, eval_steps, ckpt, strategy, topology):
     all_outputs = []
     for i in range(eval_steps):
       outputs, labels = run_single_step(iterator)
-      all_outputs.append((outputs, labels))
+      all_outputs.append((outputs.numpy(), labels.numpy()))
       logging.info('Completed eval for %d / %d steps', i + 1, eval_steps)
     logging.info('Finished eval for %s', ckpt)
 
