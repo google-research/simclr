@@ -383,6 +383,7 @@ def perform_evaluation(model, builder, eval_steps, ckpt, strategy, topology):
                                          label_top_5_accuracy, outputs, l)
     reg_loss = model_lib.add_weight_decay(model, adjust_per_optimizer=True)
     regularization_loss.update_state(reg_loss)
+    return outputs
 
   with strategy.scope():
 
@@ -390,11 +391,14 @@ def perform_evaluation(model, builder, eval_steps, ckpt, strategy, topology):
     def run_single_step(iterator):
       images, labels = next(iterator)
       features, labels = images, {'labels': labels}
-      strategy.run(single_step, (features, labels))
+      outputs = strategy.run(single_step, (features, labels))
+      return outputs, labels
 
     iterator = iter(ds)
     for i in range(eval_steps):
-      run_single_step(iterator)
+      outputs, labels = run_single_step(iterator)
+      logging.info(outputs)
+      logging.info(labels)
       logging.info('Completed eval for %d / %d steps', i + 1, eval_steps)
     logging.info('Finished eval for %s', ckpt)
 
