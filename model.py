@@ -62,7 +62,7 @@ def build_model_fn(model, num_classes, num_train_examples):
         # Finetune just supervised (linear) head will not update BN stats.
         model_train_mode = False
       else:
-        # Pretrain or finetuen anything else will update BN stats.
+        # Pretrain or finetune anything else will update BN stats.
         model_train_mode = is_training
       hiddens = model(features, is_training=model_train_mode)
 

@@ -234,7 +234,7 @@ def center_crop(image, height, width, crop_proportion):
   image_height = shape[0]
   image_width = shape[1]
   crop_height, crop_width = _compute_crop_shape(
-      image_height, image_width, height / width, crop_proportion)
+      image_height, image_width, width / height, crop_proportion)
   offset_height = ((image_height - crop_height) + 1) // 2
   offset_width = ((image_width - crop_width) + 1) // 2
   image = tf.image.crop_to_bounding_box(
