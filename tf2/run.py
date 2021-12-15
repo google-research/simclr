@@ -467,7 +467,7 @@ def main(argv):
   if len(argv) > 1:
     raise app.UsageError('Too many command-line arguments.')
 
-
+  # insert own model loader here
   builder = tfds.builder(FLAGS.dataset, data_dir=FLAGS.data_dir)
   builder.download_and_prepare()
   num_train_examples = builder.info.splits[FLAGS.train_split].num_examples
@@ -574,8 +574,14 @@ def main(argv):
           # Only log augmented images for the first tower.
           tf.summary.image(
               'image', features[:, :, :, :3], step=optimizer.iterations + 1)
+
+
+        
         projection_head_outputs, supervised_head_outputs = model(
             features, training=True)
+        # here it gets decided over what components to calculate the loss and
+        # ultimately do packprop
+        # i.e. the distiction between finetune and pretrain
         loss = None
         if projection_head_outputs is not None:
           outputs = projection_head_outputs
