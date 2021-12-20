@@ -49,11 +49,20 @@ class CustomBuilder():
 
         AUTOTUNE = tf.data.AUTOTUNE
 
+        # def get_label(file_path):
+        #     # Convert the path to a list of path components
+        #     parts = tf.strings.split(file_path, os.path.sep)
+        #     # The second to last is the class-directory
+        #     one_hot = parts[-2] == class_names
+        #     # Integer encode the label
+        #     return tf.argmax(one_hot)
+
         def decode_img(img):
             # Convert the compressed string to a 3D uint8 tensor
-            img = tf.io.decode_jpeg(img, channels=3)
-            # Resize the image to the desired size
-            return img # tf.image.resize(img, [img_height, img_width])
+            img = tf.io.decode_png(img, channels=3)
+            # Resize the image to the desired size for testing
+            img = tf.image.resize(img, [64, 64])
+            return img
 
         def process_path(file_path):
             label = 1
