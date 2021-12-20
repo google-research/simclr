@@ -1,4 +1,4 @@
-!python3 simclr/run.py --dataset=tf_flowers --eval_split=train --use_tpu=False --model_dir=logs
+python3 run.py --dataset=pill --eval_split=train --use_tpu=False --model_dir=logs --train_mode=pretrain
 
 # --train_mode= pretrain or finetune
 # it's (obviously) necessary to pretrain first because the models loads a checkpoint.
