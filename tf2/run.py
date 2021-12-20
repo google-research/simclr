@@ -28,6 +28,7 @@ import model as model_lib
 import objective as obj_lib
 import tensorflow.compat.v2 as tf
 import tensorflow_datasets as tfds
+from custom_data import CustomBuilder
 
 
 
@@ -468,11 +469,18 @@ def main(argv):
     raise app.UsageError('Too many command-line arguments.')
 
   # insert own model loader here
-  builder = tfds.builder(FLAGS.dataset, data_dir=FLAGS.data_dir)
+  # builder = tfds.builder(FLAGS.dataset, data_dir=FLAGS.data_dir)
+  # builder = CustomBuilder(FLAGS.dataset, data_dir=FLAGS.data_dir)
+  builder = CustomBuilder.getBuilder(FLAGS.dataset, data_dir=FLAGS.data_dir)
+
   builder.download_and_prepare()
   num_train_examples = builder.info.splits[FLAGS.train_split].num_examples
   num_eval_examples = builder.info.splits[FLAGS.eval_split].num_examples
   num_classes = builder.info.features['label'].num_classes
+
+  # train = builder.as_dataset(split='train')
+  # print(train.take(1))
+  # return
 
   train_steps = model_lib.get_train_steps(num_train_examples)
   eval_steps = FLAGS.eval_steps or int(
