@@ -18,13 +18,11 @@ class CustomBuilder():
         `tf.data.Dataset`s.
     """
 
-    custom_datasets = [
-        'pill'
-    ]
+    
 
     @staticmethod
     def getBuilder(dataset, **kwargs):
-        if dataset in CustomBuilder.custom_datasets:
+        if dataset == 'mvtech':
             return CustomBuilder(dataset, **kwargs)
         else:
             return tfds.builder(dataset, **kwargs)
@@ -33,7 +31,7 @@ class CustomBuilder():
     def __init__(self, dataset, data_dir=None):
         print(dataset)
         self.dataset = dataset
-        self.path = f'{data_dir}/{dataset}'
+        self.path = os.path.join(data_dir, '*')
         self._info = None
 
     def download_and_prepare(self):
@@ -49,13 +47,13 @@ class CustomBuilder():
 
         AUTOTUNE = tf.data.AUTOTUNE
 
-        # def get_label(file_path):
-        #     # Convert the path to a list of path components
-        #     parts = tf.strings.split(file_path, os.path.sep)
-        #     # The second to last is the class-directory
-        #     one_hot = parts[-2] == class_names
-        #     # Integer encode the label
-        #     return tf.argmax(one_hot)
+        def get_label(file_path):
+            # Convert the path to a list of path components
+            parts = tf.strings.split(file_path, os.path.sep)
+            # The second to last is the class-directory
+            one_hot = parts[-2] != 'good'
+            # Integer encode the label
+            return tf.argmax(one_hot)
 
         def decode_img(img):
             # Convert the compressed string to a 3D uint8 tensor
@@ -66,7 +64,7 @@ class CustomBuilder():
             return img
 
         def process_path(file_path):
-            label = 1
+            label = get_label(file_path)
             # Load the raw data from the file as a string
             img = tf.io.read_file(file_path)
             img = decode_img(img)

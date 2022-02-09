@@ -1,4 +1,4 @@
-python3 run.py --dataset=pill --data_dir="" --eval_split=train --use_tpu=False --model_dir=logs --train_mode=pretrain --image_size=224 --train_batch_size=64
+python3 run.py --dataset=mvtech --data_dir="/mnt/data" --eval_split=train --use_tpu=False --model_dir=logs --train_mode=pretrain --image_size=224 --train_batch_size=128
 
 # --train_mode= pretrain or finetune
 # it's (obviously) necessary to pretrain first because the models loads a checkpoint.
