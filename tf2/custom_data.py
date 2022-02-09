@@ -51,9 +51,9 @@ class CustomBuilder():
             # Convert the path to a list of path components
             parts = tf.strings.split(file_path, os.path.sep)
             # The second to last is the class-directory
-            one_hot = parts[-2] != 'good'
+            l = parts[-2] != 'good'
             # Integer encode the label
-            return tf.argmax(one_hot)
+            return l # tf.argmax(one_hot)
 
         def decode_img(img):
             # Convert the compressed string to a 3D uint8 tensor
