@@ -33,7 +33,7 @@ class CustomBuilder():
     def __init__(self, dataset, data_dir=None):
         print(dataset)
         self.dataset = dataset
-        self.path = f'../{dataset}'
+        self.path = f'{data_dir}/{dataset}'
         self._info = None
 
     def download_and_prepare(self):
@@ -61,7 +61,8 @@ class CustomBuilder():
             # Convert the compressed string to a 3D uint8 tensor
             img = tf.io.decode_png(img, channels=3)
             # Resize the image to the desired size for testing
-            img = tf.image.resize(img, [64, 64])
+            # this is not needed because it's already done in build input func
+            # img = tf.image.resize(img, [64, 64])
             return img
 
         def process_path(file_path):
@@ -92,7 +93,7 @@ class CustomBuilder():
         # batch_size=batch_size)
 
         self.train_ds = tf.data.Dataset.list_files(os.path.join(self.path, 'train', 'good', '*.png'))
-        print(self.train_ds.take(1))
+        # print(self.train_ds.take(1))
 
         # self.test_ds = tf.keras.utils.image_dataset_from_directory(
         # os.path.join(self.path, 'test'),
