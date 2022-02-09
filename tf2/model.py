@@ -233,7 +233,7 @@ class Model(tf.keras.models.Model):
     self.resnet_model = resnet.resnet(
         resnet_depth=FLAGS.resnet_depth,
         width_multiplier=FLAGS.width_multiplier,
-        cifar_stem=FLAGS.image_size <= 32)
+        cifar_stem=FLAGS.image_size[0] <= 32)
     self._projection_head = ProjectionHead()
     if FLAGS.train_mode == 'finetune' or FLAGS.lineareval_while_pretraining:
       self.supervised_head = SupervisedHead(num_classes)
@@ -254,8 +254,8 @@ class Model(tf.keras.models.Model):
         features, num_or_size_splits=num_transforms, axis=-1)
     if FLAGS.use_blur and training and FLAGS.train_mode == 'pretrain':
       features_list = data_util.batch_random_blur(features_list,
-                                                  FLAGS.image_size,
-                                                  FLAGS.image_size)
+                                                  FLAGS.image_size[0],
+                                                  FLAGS.image_size[1])
     features = tf.concat(features_list, 0)  # (num_transforms * bsz, h, w, c)
 
     # Base network forward pass.

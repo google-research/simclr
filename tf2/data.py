@@ -81,7 +81,7 @@ def build_input_fn(builder, global_batch_size, topology, is_training):
       options.experimental_deterministic = False
       options.experimental_slack = True
       dataset = dataset.with_options(options)
-      buffer_multiplier = 50 if FLAGS.image_size <= 32 else 10
+      buffer_multiplier = 50 if FLAGS.image_size[0] <= 32 else 10
       dataset = dataset.shuffle(batch_size * buffer_multiplier)
       dataset = dataset.repeat(-1)
     dataset = dataset.map(
@@ -102,14 +102,14 @@ def build_distributed_dataset(builder, batch_size, is_training, strategy,
 def get_preprocess_fn(is_training, is_pretrain):
   """Get function that accepts an image and returns a preprocessed image."""
   # Disable test cropping for small images (e.g. CIFAR)
-  if FLAGS.image_size <= 32:
+  if FLAGS.image_size[0] <= 32:
     test_crop = False
   else:
     test_crop = True
   return functools.partial(
       data_util.preprocess_image,
-      height=FLAGS.image_size,
-      width=FLAGS.image_size,
+      height=FLAGS.image_size[0],
+      width=FLAGS.image_size[1],
       is_training=is_training,
       color_distort=is_pretrain,
       test_crop=test_crop)
