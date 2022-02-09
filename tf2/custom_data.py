@@ -53,7 +53,7 @@ class CustomBuilder():
             # The second to last is the class-directory
             l = parts[-2] != 'good'
             # Integer encode the label
-            return l # tf.argmax(one_hot)
+            return int(l) # tf.argmax(one_hot)
 
         def decode_img(img):
             # Convert the compressed string to a 3D uint8 tensor
