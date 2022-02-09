@@ -226,7 +226,7 @@ flags.DEFINE_float(
     'se_ratio', 0.,
     'If it is bigger than 0, it will enable SE.')
 
-flags.DEFINE_list(
+flags.DEFINE_multi_integer(
     'image_size', [224, 224],
     'Input image size.')
 
