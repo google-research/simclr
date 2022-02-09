@@ -48,6 +48,7 @@ def build_input_fn(builder, global_batch_size, topology, is_training):
     preprocess_fn_pretrain = get_preprocess_fn(is_training, is_pretrain=True)
     preprocess_fn_finetune = get_preprocess_fn(is_training, is_pretrain=False)
     num_classes = builder.info.features['label'].num_classes
+    print('num classes', num_classes)
 
     def map_fn(image, label):
       """Produces multiple transformations of the same batch."""
