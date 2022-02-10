@@ -1,2 +1,3 @@
 tensorflow
 tensorflow-datasets
+pandas
