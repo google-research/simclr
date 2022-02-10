@@ -28,7 +28,7 @@ import model as model_lib
 import objective as obj_lib
 import tensorflow.compat.v2 as tf
 import tensorflow_datasets as tfds
-from custom_data import CustomBuilder
+from custom_data import getBuilder
 
 
 
@@ -471,7 +471,7 @@ def main(argv):
   # insert own model loader here
   # builder = tfds.builder(FLAGS.dataset, data_dir=FLAGS.data_dir)
   # builder = CustomBuilder(FLAGS.dataset, data_dir=FLAGS.data_dir)
-  builder = CustomBuilder.getBuilder(FLAGS.dataset, data_dir=FLAGS.data_dir)
+  builder = getBuilder(FLAGS.dataset, data_dir=FLAGS.data_dir)
 
   builder.download_and_prepare()
   num_train_examples = builder.info.splits[FLAGS.train_split].num_examples

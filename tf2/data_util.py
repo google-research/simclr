@@ -512,6 +512,7 @@ def preprocess_image(image, height, width, is_training=False,
   Returns:
     A preprocessed image `Tensor` of range [0, 1].
   """
+  # this normalized the image
   image = tf.image.convert_image_dtype(image, dtype=tf.float32)
   if is_training:
     return preprocess_for_train(image, height, width, color_distort)
