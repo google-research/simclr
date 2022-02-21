@@ -23,6 +23,7 @@ import tensorflow.compat.v2 as tf
 FLAGS = flags.FLAGS
 
 CROP_PROPORTION = 0.875  # Standard for ImageNet.
+CENTRAL_CROP_PROPORTION = 0.9
 
 
 def random_apply(func, p, x):
@@ -449,7 +450,9 @@ def preprocess_for_train(image,
                          color_distort=True,
                          crop=True,
                          flip=True,
-                         impl='simclrv2'):
+                         impl='simclrv2',
+                         central_crop=True,
+                         central_crop_proportion=CENTRAL_CROP_PROPORTION):
   """Preprocesses the given image for training.
 
   Args:
@@ -465,6 +468,9 @@ def preprocess_for_train(image,
   Returns:
     A preprocessed image `Tensor`.
   """
+  if central_crop:
+      image = tf.image.central_crop(image, central_crop_proportion)
+  #
   if crop:
     image = random_crop_with_resize(image, height, width)
   if flip:

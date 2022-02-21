@@ -3,14 +3,18 @@ import os
 import tensorflow_datasets as tfds
 import numpy as np
 import pandas as pd
+import pickle
+from absl import logging
+
 
 def getBuilder(dataset, **kwargs):
-        if dataset == 'mvtech':
-            return MVTechBuilder(dataset, **kwargs)
-        elif dataset == 'bmw':
-            return BMWBuilder(dataset, **kwargs)
-        else:
-            return tfds.builder(dataset, **kwargs)
+    if dataset == 'mvtech':
+        return MVTechBuilder(dataset, **kwargs)
+    elif dataset == 'bmw':
+        return BMWBuilder(dataset, **kwargs)
+    else:
+        return tfds.builder(dataset, **kwargs)
+
 
 class MVTechBuilder():
     """
@@ -24,7 +28,6 @@ class MVTechBuilder():
         `tf.data.Dataset`s.
     """
 
-
     def __init__(self, dataset, data_dir=None):
         self.dataset = dataset
         self.path = os.path.join(data_dir, '*')
@@ -35,8 +38,8 @@ class MVTechBuilder():
 
     @property
     def info(self):
-        if self._info == None: 
-            raise ValueError('info is None. Call download_and_prepare() first.') 
+        if self._info == None:
+            raise ValueError('info is None. Call download_and_prepare() first.')
         return self._info
 
     def as_dataset(self, split=None, batch_size=None, shuffle_files=None, as_supervised=False, read_config=None):
@@ -49,7 +52,7 @@ class MVTechBuilder():
             # The second to last is the class-directory
             l = parts[-2] != 'good'
             # Integer encode the label
-            return int(l) # tf.argmax(one_hot)
+            return int(l)  # tf.argmax(one_hot)
 
         def decode_img(img):
             # Convert the compressed string to a 3D uint8 tensor
@@ -66,9 +69,9 @@ class MVTechBuilder():
             img = decode_img(img)
             return img, label
 
-        if split=='train':
-            dataset =  self.train_ds
-        elif split=='test':
+        if split == 'train':
+            dataset = self.train_ds
+        elif split == 'test':
             dataset = self.test_ds
         else:
             raise ValueError('Splits needs to be either train or test.')
@@ -77,7 +80,7 @@ class MVTechBuilder():
 
     def _load_mvtech_dataset(self):
         self.train_ds = tf.data.Dataset.list_files(os.path.join(self.path, 'train', 'good', '*.png'))
-        self.test_ds = tf.data.Dataset.list_files(os.path.join(self.path, 'test', '*','*.png'))
+        self.test_ds = tf.data.Dataset.list_files(os.path.join(self.path, 'test', '*', '*.png'))
 
         self._info = Map({
             'splits': Map({
@@ -108,33 +111,46 @@ class BMWBuilder():
         `tf.data.Dataset`s.
     """
 
-
-    def __init__(self, dataset, data_dir=None):
+    def __init__(self, dataset, data_dir=None,
+                 load_existing_split=False,
+                 results_dir=None,
+                 use_all_data=True, train_test_ratio=0.2,
+                 min_fraction_anomalies=0.8):
         self.dataset = dataset
         self.path = data_dir
+        self.load_existing_split=load_existing_split
+        self.results_dir=results_dir
+        self.use_all_data = use_all_data
+        self.train_test_ratio = train_test_ratio
+        self.min_fraction_anomalies = min_fraction_anomalies
         self._info = None
+        #
+        if not os.path.exists(self.results_dir):
+            os.mkdir(self.results_dir)
 
     def download_and_prepare(self):
         self._load_bmw_dataset()
 
     @property
     def info(self):
-        if self._info == None: 
-            raise ValueError('info is None. Call download_and_prepare() first.') 
+        if self._info is None:
+            raise ValueError('info is None. Call download_and_prepare() first.')
         return self._info
 
     def as_dataset(self, split=None, batch_size=None, shuffle_files=None, as_supervised=False, read_config=None):
 
-        AUTOTUNE = tf.data.AUTOTUNE
+        # AUTOTUNE = tf.data.AUTOTUNE
+        AUTOTUNE = tf.data.experimental.AUTOTUNE
 
         def get_label(status):
             l = status != 'IO'
             # Integer encode the label
-            return int(l) # tf.argmax(one_hot)
+            return int(l)  # tf.argmax(one_hot)
 
         def decode_img(img):
             # Convert the compressed string to a 3D uint8 tensor
-            img = tf.io.decode_png(img, channels=3)
+            # img = tf.io.decode_png(img, channels=3)
+            img = tf.io.decode_jpeg(img, channels=3)
             # Resize the image to the desired size for testing
             # this is not needed because it's already done in build input func
             # img = tf.image.resize(img, [64, 64])
@@ -147,9 +163,9 @@ class BMWBuilder():
             img = decode_img(img)
             return img, label
 
-        if split=='train':
-            dataset =  self.train_ds
-        elif split=='test':
+        if split == 'train':
+            dataset = self.train_ds
+        elif split == 'test':
             dataset = self.test_ds
         else:
             raise ValueError('Splits needs to be either train or test.')
@@ -157,24 +173,53 @@ class BMWBuilder():
         return dataset.map(process, num_parallel_calls=AUTOTUNE)
 
     def _load_bmw_dataset(self):
-        self.annotations = pd.read_csv(os.path.join(self.path, 'annotation.csv'), index_col='file_name')
-        io_mask = self.annotations.lbl.values == 'IO'
-        io_df = self.annotations[io_mask]
+        if not self.load_existing_split:
+            self.annotations = pd.read_csv(os.path.join(self.path, 'annotation.csv'), index_col='file_name')
+            io_mask = self.annotations.lbl.values == 'IO'
+            nio_mask = self.annotations.lbl.values != 'IO'
 
-        frac = 0.2
-        train_df = io_df.sample(frac=1-frac, replace=False, axis=0)
-        test_df = self.annotations.drop(index=train_df.index)
+            if not self.use_all_data:
+                dt_df = self.annotations[io_mask]
+                self.min_fraction_anomalies = 0.0  # not used
+            else:
+                dt_df = self.annotations
 
-        print('total images', self.annotations.shape[0])
-        print('train images', train_df.shape[0])
-        print('test images', test_df.shape[0])
+            if self.min_fraction_anomalies <= 0.0:
+                train_df = dt_df.sample(frac=1 - self.train_test_ratio, replace=False, axis=0)
+            else:
+                nio_incl = self.annotations[nio_mask]
+                nio_incl = nio_incl.sample(frac=self.min_fraction_anomalies, replace=False, axis=0)
+                """
+                if self.min_fraction_anomalies < self.train_test_ratio:
+                    # include more IOs
+                    self.train_test_ratio = self.train_test_ratio + \
+                                            (self.train_test_ratio - self.min_fraction_anomalies)
+                """
+                #
+                train_df = self.annotations[io_mask]                
+                train_df = train_df.sample(frac=1 - self.train_test_ratio, replace=False, axis=0)
+                train_df = pd.concat([train_df, nio_incl])
+                train_df = train_df.sample(frac=1)
 
+            test_df = self.annotations.drop(index=train_df.index)
+
+            logging.info('total images', self.annotations.shape[0])
+            with open(os.path.join(self.results_dir, "split.pkl"), "wb") as f:
+                pickle.dump((train_df, test_df), f)
+        else:
+            logging.info("loading existing split from {}".format(os.path.join(self.results_dir, "split.pkl")))
+            with open(os.path.join(self.results_dir, "split.pkl"), "rb") as f:
+                (train_df, test_df) = pickle.load(f)
+
+        logging.info('train images', train_df.shape[0])
+        logging.info('test images', test_df.shape[0])
+        #
         train_paths = [os.path.join(self.path, file_name) for file_name in train_df.index.values]
         test_paths = [os.path.join(self.path, file_name) for file_name in test_df.index.values]
 
         # use filename as index
         self.train_ds = tf.data.Dataset.from_tensor_slices(list(zip(train_paths, train_df.lbl)))
-        self.test_ds =tf.data.Dataset.from_tensor_slices(list(zip(test_paths, test_df.lbl)))
+        self.test_ds = tf.data.Dataset.from_tensor_slices(list(zip(test_paths, test_df.lbl)))
 
         self._info = Map({
             'splits': Map({
@@ -198,6 +243,7 @@ class Map(dict):
     Example:
     m = Map({'first_name': 'Eduardo'}, last_name='Pool', age=24, sports=['Soccer'])
     """
+
     def __init__(self, *args, **kwargs):
         super(Map, self).__init__(*args, **kwargs)
         for arg in args:
@@ -225,4 +271,3 @@ class Map(dict):
     def __delitem__(self, key):
         super(Map, self).__delitem__(key)
         del self.__dict__[key]
-

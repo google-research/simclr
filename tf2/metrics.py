@@ -47,19 +47,44 @@ def update_pretrain_metrics_eval(contrast_loss_metric,
 
 
 def update_finetune_metrics_train(supervised_loss_metric, supervised_acc_metric,
+                                  supervised_recall_metric, supervised_precision_metric,
                                   loss, labels, logits):
   supervised_loss_metric.update_state(loss)
 
   label_acc = tf.equal(tf.argmax(labels, 1), tf.argmax(logits, axis=1))
   label_acc = tf.reduce_mean(tf.cast(label_acc, tf.float32))
   supervised_acc_metric.update_state(label_acc)
+  supervised_recall_metric.update_state(y_true=tf.math.round(tf.clip_by_value(labels, 0, 1)),
+                                        y_pred=tf.math.round(tf.clip_by_value(logits, 0, 1)))
+  supervised_precision_metric.update_state(y_true=tf.math.round(tf.clip_by_value(labels, 0, 1)),
+                                           y_pred=tf.math.round(tf.clip_by_value(logits, 0, 1)))
 
 
-def update_finetune_metrics_eval(label_top_1_accuracy_metrics,
-                                 label_top_5_accuracy_metrics, outputs, labels):
+def update_finetune_metrics_eval(label_top_1_accuracy_metrics, label_recall, label_precision,
+                                 label_top_K_accuracy_metrics,
+                                 outputs, labels):
   label_top_1_accuracy_metrics.update_state(
       tf.argmax(labels, 1), tf.argmax(outputs, axis=1))
-  label_top_5_accuracy_metrics.update_state(labels, outputs)
+  #label_recall.update_state(y_true=tf.reshape(tf.argmax(labels, 1), [tf.shape(labels)[0], 1]),
+  #                          y_pred=tf.reshape(tf.argmax(outputs, axis=1), [tf.shape(outputs)[0], 1]))
+  label_recall.update_state(y_true=tf.math.round(tf.clip_by_value(labels, 0, 1)),
+                            y_pred=tf.math.round(tf.clip_by_value(outputs, 0, 1)))
+  label_precision.update_state(y_true=tf.math.round(tf.clip_by_value(labels, 0, 1)),
+                               y_pred=tf.math.round(tf.clip_by_value(outputs, 0, 1)))
+  """
+  TP = tf.math.count_nonzero(tf.clip_by_value(outputs, 0, 1) * labels)
+  TN = tf.math.count_nonzero((tf.clip_by_value(outputs, 0, 1) - 1) * (labels - 1))
+  FP = tf.math.count_nonzero(tf.clip_by_value(outputs, 0, 1) * (labels - 1))
+  FN = tf.math.count_nonzero((tf.clip_by_value(outputs, 0, 1) - 1) * labels)
+  #
+  precision = TP / (TP + FP)
+  recall = TP / (TP + FN)
+  tf.print("++++++++++++++++PRECISION++++++++++++")
+  tf.print(precision)
+  tf.print("++++++++++++++++RECALL++++++++++++")
+  tf.print(recall)
+  """
+  label_top_K_accuracy_metrics.update_state(labels, outputs)
 
 
 def _float_metric_value(metric):
