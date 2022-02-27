@@ -112,6 +112,7 @@ class MVTechBuilder(StandardBuilder):
 
     def __init__(self, dataset, data_dir=None, **kwargs):
         super().__init__(self, **kwargs)
+        print(kwargs)
         self.dataset = dataset
         self.path = os.path.join(data_dir, '*')
 
