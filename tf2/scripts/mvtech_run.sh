@@ -1,5 +1,5 @@
-python3 run.py --dataset=mvtech --data_dir="/home/nick/data" --eval_split=test \
---use_tpu=False --model_dir=logs --mode=train --train_mode=train_then_eval --image_size=224 \
+python3 run.py --dataset=mvtech --data_dir="/mnt/data" --eval_split=test \
+--use_tpu=False --model_dir=logs --mode=train_then_eval --train_mode=pretrain --image_size=224 \
 --image_size=224 --train_batch_size=128 --lineareval_while_pretraining=False --train_test_ratio=0.3 \
 --eval_batch_size=128 --load_existing_split=False --min_fraction_anomalies=0.15 --run_id=001
 
