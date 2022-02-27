@@ -20,15 +20,10 @@ def getBuilder(dataset, **kwargs):
 
 class StandardBuilder():
 
-    def __init__(self, 
-                 use_all_data=True, 
-                 train_test_ratio=0.2,
-                 min_fraction_anomalies=0.8,
-                 **kwargs
-                 ):
-        self.use_all_data = use_all_data
-        self.min_fraction_anomalies = min_fraction_anomalies
-        self.train_test_ratio = train_test_ratio
+    def __init__(self, **kwargs):
+        self.use_all_data = kwargs.get('use_all_data', True)
+        self.min_fraction_anomalies = kwargs.get('min_fraction_anomalies', 0.8)
+        self.train_test_ratio = kwargs.get('train_test_ratio', 0.2)
         self._info = None
         
 
