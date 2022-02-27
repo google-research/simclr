@@ -23,7 +23,8 @@ class StandardBuilder():
     def __init__(self, 
                  use_all_data=True, 
                  train_test_ratio=0.2,
-                 min_fraction_anomalies=0.8
+                 min_fraction_anomalies=0.8,
+                 **kwargs
                  ):
         self.use_all_data = use_all_data
         self.min_fraction_anomalies = min_fraction_anomalies
