@@ -508,7 +508,7 @@ def main(argv):
     # builder = tfds.builder(FLAGS.dataset, data_dir=FLAGS.data_dir)
     # builder = CustomBuilder(FLAGS.dataset, data_dir=FLAGS.data_dir)
     builder = getBuilder(FLAGS.dataset,
-                         data_dir=FLAGS.data_dir,
+                         FLAGS.data_dir,
                          load_existing_split=FLAGS.load_existing_split,
                          results_dir=FLAGS.model_dir + '_' + FLAGS.run_id,
                          use_all_data=FLAGS.use_all_data,

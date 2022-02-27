@@ -105,7 +105,7 @@ class MVTechBuilder(StandardBuilder):
         `tf.data.Dataset`s.
     """
 
-    def __init__(self, dataset, data_dir=None, **kwargs):
+    def __init__(self, dataset, data_dir, **kwargs):
         super().__init__(self, **kwargs)
         print(kwargs)
         self.dataset = dataset
@@ -188,7 +188,7 @@ class BMWBuilder(StandardBuilder):
         `tf.data.Dataset`s.
     """
 
-    def __init__(self, dataset, data_dir=None,
+    def __init__(self, dataset, data_dir,
                  load_existing_split=False,
                  results_dir=None,
                  **kwargs,
