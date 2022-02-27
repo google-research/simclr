@@ -469,6 +469,7 @@ def preprocess_for_train(image,
     A preprocessed image `Tensor`.
   """
   if central_crop:
+      # the validation pipeline already includes this step so we only have to add it here
       image = tf.image.central_crop(image, central_crop_proportion)
   #
   if crop:
