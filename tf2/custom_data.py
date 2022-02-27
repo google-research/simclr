@@ -9,13 +9,13 @@ from glob import glob
 from absl import logging
 
 
-def getBuilder(dataset, **kwargs):
+def getBuilder(dataset, *args, **kwargs):
     if dataset == 'mvtech':
-        return MVTechBuilder(dataset, **kwargs)
+        return MVTechBuilder(dataset, *args, **kwargs)
     elif dataset == 'bmw':
-        return BMWBuilder(dataset, **kwargs)
+        return BMWBuilder(dataset, *args, **kwargs)
     else:
-        return tfds.builder(dataset, **kwargs)
+        return tfds.builder(dataset, *args, **kwargs)
 
 
 class StandardBuilder():
