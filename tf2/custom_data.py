@@ -54,9 +54,7 @@ class StandardBuilder():
         test_df = data_frame.drop(index=train_df.index)
 
         logging.info('total images', data_frame.shape[0])
-        with open(os.path.join(self.results_dir, "split.pkl"), "wb") as f:
-            pickle.dump((train_df, test_df), f)
-
+       
         return (train_df, test_df)
 
     def prepare_dataset(self, train_df, test_df):
@@ -164,9 +162,9 @@ class MVTechBuilder(StandardBuilder):
         neg_df = pd.DataFrame(data={'lbl': ['good'] * len(neg_files)}, index=neg_files)
         pos_df = pd.DataFrame(data={'lbl': ['bad'] * len(pos_files)}, index=pos_files)
 
-        df = pd.concat(neg_df, pos_df)
-        neg_mask = neg_df.lbl.values == 'good'
-        pos_mask = pos_df.lbl.values == 'bad'
+        df = pd.concat([neg_df, pos_df])
+        neg_mask = df.lbl.values == 'good'
+        pos_mask = df.lbl.values == 'bad'
 
         train_df, test_df = self.split_data_set(df, neg_mask, pos_mask)
 
@@ -253,6 +251,9 @@ class BMWBuilder(StandardBuilder):
             pos_mask = annotations.lbl.values != 'IO'
 
             train_df, test_df = self.split_data_set(annotations, neg_mask, pos_mask)
+
+            with open(os.path.join(self.results_dir, "split.pkl"), "wb") as f:
+                pickle.dump((train_df, test_df), f)
         else:
             logging.info("loading existing split from {}".format(os.path.join(self.results_dir, "split.pkl")))
             with open(os.path.join(self.results_dir, "split.pkl"), "rb") as f:
