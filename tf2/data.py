@@ -96,8 +96,12 @@ def build_input_fn(builder, global_batch_size, topology, is_training):
 def build_distributed_dataset(builder, batch_size, is_training, strategy,
                               topology):
   input_fn = build_input_fn(builder, batch_size, topology, is_training)
-  #return strategy.distribute_datasets_from_function(input_fn) 
-  return strategy.experimental_distribute_datasets_from_function(input_fn) # because cluster not on latest tf2 version
+
+  if tf.version.VERSION != '2.7.0':
+    return strategy.experimental_distribute_datasets_from_function(input_fn) # because cluster not on latest tf2 version
+  else:
+    return strategy.distribute_datasets_from_function(input_fn) 
+
 
 
 def get_preprocess_fn(is_training, is_pretrain):
