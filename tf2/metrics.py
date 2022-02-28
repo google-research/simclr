@@ -54,10 +54,16 @@ def update_finetune_metrics_train(supervised_loss_metric, supervised_acc_metric,
   label_acc = tf.equal(tf.argmax(labels, 1), tf.argmax(logits, axis=1))
   label_acc = tf.reduce_mean(tf.cast(label_acc, tf.float32))
   supervised_acc_metric.update_state(label_acc)
-  supervised_recall_metric.update_state(y_true=tf.math.round(tf.clip_by_value(labels, 0, 1)),
-                                        y_pred=tf.math.round(tf.clip_by_value(logits, 0, 1)))
-  supervised_precision_metric.update_state(y_true=tf.math.round(tf.clip_by_value(labels, 0, 1)),
-                                           y_pred=tf.math.round(tf.clip_by_value(logits, 0, 1)))
+  # logits go from -inf to +inf. This doesn't make sense
+  # supervised_recall_metric.update_state(y_true=tf.math.round(tf.clip_by_value(labels, 0, 1)),
+  #                                       y_pred=tf.math.round(tf.clip_by_value(logits, 0, 1)))
+  # supervised_precision_metric.update_state(y_true=tf.math.round(tf.clip_by_value(labels, 0, 1)),
+  #                                          y_pred=tf.math.round(tf.clip_by_value(logits, 0, 1)))
+
+  supervised_recall_metric.update_state(y_true=labels,
+                            y_pred=tf.nn.softmax(logits))
+  supervised_precision_metric.update_state(y_true=labels,
+                               y_pred=tf.nn.softmax(logits))
 
 
 def update_finetune_metrics_eval(label_top_1_accuracy_metrics, label_recall, label_precision,
@@ -67,10 +73,18 @@ def update_finetune_metrics_eval(label_top_1_accuracy_metrics, label_recall, lab
       tf.argmax(labels, 1), tf.argmax(outputs, axis=1))
   #label_recall.update_state(y_true=tf.reshape(tf.argmax(labels, 1), [tf.shape(labels)[0], 1]),
   #                          y_pred=tf.reshape(tf.argmax(outputs, axis=1), [tf.shape(outputs)[0], 1]))
-  label_recall.update_state(y_true=tf.math.round(tf.clip_by_value(labels, 0, 1)),
-                            y_pred=tf.math.round(tf.clip_by_value(outputs, 0, 1)))
-  label_precision.update_state(y_true=tf.math.round(tf.clip_by_value(labels, 0, 1)),
-                               y_pred=tf.math.round(tf.clip_by_value(outputs, 0, 1)))
+
+  # same here
+  # label_recall.update_state(y_true=tf.math.round(tf.clip_by_value(labels, 0, 1)),
+  #                           y_pred=tf.math.round(tf.clip_by_value(outputs, 0, 1)))
+  # label_precision.update_state(y_true=tf.math.round(tf.clip_by_value(labels, 0, 1)),
+  #                              y_pred=tf.math.round(tf.clip_by_value(outputs, 0, 1)))
+
+  label_recall.update_state(y_true=labels,
+                            y_pred=tf.nn.softmax(outputs))
+  label_precision.update_state(y_true=labels,
+                               y_pred=tf.nn.softmax(outputs))
+
   """
   TP = tf.math.count_nonzero(tf.clip_by_value(outputs, 0, 1) * labels)
   TN = tf.math.count_nonzero((tf.clip_by_value(outputs, 0, 1) - 1) * (labels - 1))
