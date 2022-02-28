@@ -53,13 +53,13 @@ class StandardBuilder():
 
         test_df = data_frame.drop(index=train_df.index)
 
-        logging.info('total images', data_frame.shape[0])
+        logging.info('total images %d', data_frame.shape[0])
        
         return (train_df, test_df)
 
     def prepare_dataset(self, train_df, test_df):
-        logging.info('train images', train_df.shape[0])
-        logging.info('test images', test_df.shape[0])
+        logging.info('train images %d', train_df.shape[0])
+        logging.info('test images %d', test_df.shape[0])
         
         train_paths = [os.path.join(self.path, file_name) for file_name in train_df.index.values]
         test_paths = [os.path.join(self.path, file_name) for file_name in test_df.index.values]
