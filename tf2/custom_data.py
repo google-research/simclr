@@ -87,7 +87,7 @@ class StandardBuilder():
         return {
             'info': info,
             'train_ds': train_ds,
-            'test_df': test_ds
+            'test_ds': test_ds
         }
 
 
@@ -169,8 +169,8 @@ class MVTechBuilder(StandardBuilder):
         train_df, test_df = self.split_data_set(df, neg_mask, pos_mask)
 
         res = self.prepare_dataset(train_df, test_df)
-        self.train_ds = res['train_df']
-        self.test_ds = res['test_df']
+        self.train_ds = res['train_ds']
+        self.test_ds = res['test_ds']
         self._info = res['info']
 
 
@@ -260,8 +260,8 @@ class BMWBuilder(StandardBuilder):
                 (train_df, test_df) = pickle.load(f)
 
         res = self.prepare_dataset(train_df, test_df)
-        self.train_ds = res['train_df']
-        self.test_ds = res['test_df']
+        self.train_ds = res['train_ds']
+        self.test_ds = res['test_ds']
         self._info = res['info']
 
 
