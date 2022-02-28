@@ -20,10 +20,10 @@ def getBuilder(dataset, *args, **kwargs):
 
 class StandardBuilder():
 
-    def __init__(self, **kwargs):
-        self.use_all_data = kwargs.get('use_all_data', True)
-        self.min_fraction_anomalies = kwargs.get('min_fraction_anomalies', 0.8)
-        self.train_test_ratio = kwargs.get('train_test_ratio', 0.2)
+    def __init__(self, *args, use_all_data=True, min_fraction_anomalies=0.8, train_test_ratio=2, **kwargs):
+        self.use_all_data = use_all_data #kwargs.get('use_all_data', True)
+        self.min_fraction_anomalies = min_fraction_anomalies# kwargs.get('min_fraction_anomalies', 0.8)
+        self.train_test_ratio = train_test_ratio# kwargs.get('train_test_ratio', 0.2)
         self._info = None
         
 
@@ -105,7 +105,7 @@ class MVTechBuilder(StandardBuilder):
         `tf.data.Dataset`s.
     """
 
-    def __init__(self, dataset, data_dir, **kwargs):
+    def __init__(self, dataset, data_dir, *args, **kwargs):
         super().__init__(self, **kwargs)
         print(kwargs)
         self.dataset = dataset
