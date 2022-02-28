@@ -104,7 +104,7 @@ class MVTechBuilder(StandardBuilder):
     """
 
     def __init__(self, dataset, data_dir, *args, **kwargs):
-        super().__init__(self, **kwargs)
+        super().__init__(**kwargs)
         print(kwargs)
         self.dataset = dataset
         self.path = os.path.join(data_dir, '*')
@@ -191,7 +191,7 @@ class BMWBuilder(StandardBuilder):
                  results_dir=None,
                  **kwargs,
                  ):
-        super().__init__(self, **kwargs)
+        super().__init__(**kwargs)
         self.dataset = dataset
         self.path = data_dir
         self.load_existing_split=load_existing_split
