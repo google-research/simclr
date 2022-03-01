@@ -257,10 +257,10 @@ flags.DEFINE_string(
     'run id'
 )
 
-flags.DEFINE_integer(
-    'top_K', 2,
-    'top K category in eval'
-)
+# flags.DEFINE_integer(
+#     'top_K', 2,
+#     'top K category in eval'
+# )
 
 flags.DEFINE_bool(
     'load_existing_split', False,
@@ -397,15 +397,16 @@ def perform_evaluation(model, builder, eval_steps, ckpt, strategy, topology):
     # Build metrics.
     with strategy.scope():
         regularization_loss = tf.keras.metrics.Mean('eval/regularization_loss')
-        label_top_1_accuracy = tf.keras.metrics.Accuracy(
-            'eval/label_top_1_accuracy')
+        # label_top_1_accuracy = tf.keras.metrics.Accuracy(
+        #     'eval/label_top_1_accuracy')
+        label_accuracy = tf.keras.metrics.Mean('eval/label_accuracy')
         label_recall = tf.keras.metrics.Recall(name='eval/label_recall positives')
         label_precision = tf.keras.metrics.Precision(name='eval/label_precision negatives')
-        label_top_K_accuracy = tf.keras.metrics.TopKCategoricalAccuracy(
-            FLAGS.top_K, 'eval/label_top_' + str(FLAGS.top_K) + '_accuracy')
+        # label_top_K_accuracy = tf.keras.metrics.TopKCategoricalAccuracy(
+        #     FLAGS.top_K, 'eval/label_top_' + str(FLAGS.top_K) + '_accuracy')
         all_metrics = [
-            regularization_loss, label_top_1_accuracy, label_recall, label_precision,
-            label_top_K_accuracy
+            regularization_loss, label_accuracy, label_recall, label_precision,
+            # label_top_K_accuracy
         ]
 
         # Restore checkpoint.
@@ -421,8 +422,8 @@ def perform_evaluation(model, builder, eval_steps, ckpt, strategy, topology):
         assert supervised_head_outputs is not None
         outputs = supervised_head_outputs
         l = labels['labels']
-        metrics.update_finetune_metrics_eval(label_top_1_accuracy, label_recall, label_precision,
-                                             label_top_K_accuracy, outputs, l)
+        metrics.update_finetune_metrics_eval(label_accuracy, label_recall, label_precision,
+                                             outputs, l)
         reg_loss = model_lib.add_weight_decay(model, adjust_per_optimizer=True)
         regularization_loss.update_state(reg_loss)
 

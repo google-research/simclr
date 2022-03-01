@@ -66,11 +66,9 @@ def update_finetune_metrics_train(supervised_loss_metric, supervised_acc_metric,
                                y_pred=tf.nn.softmax(logits))
 
 
-def update_finetune_metrics_eval(label_top_1_accuracy_metrics, label_recall, label_precision,
-                                 label_top_K_accuracy_metrics,
+def update_finetune_metrics_eval(label_accuracy, label_recall, label_precision,
                                  outputs, labels):
-  label_top_1_accuracy_metrics.update_state(
-      tf.argmax(labels, 1), tf.argmax(outputs, axis=1))
+  label_accuracy.update_state(tf.argmax(labels, 1), tf.argmax(outputs, axis=1))
   #label_recall.update_state(y_true=tf.reshape(tf.argmax(labels, 1), [tf.shape(labels)[0], 1]),
   #                          y_pred=tf.reshape(tf.argmax(outputs, axis=1), [tf.shape(outputs)[0], 1]))
 
