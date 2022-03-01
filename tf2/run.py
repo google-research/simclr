@@ -248,7 +248,7 @@ flags.DEFINE_boolean(
 
 flags.DEFINE_float(
     'min_fraction_anomalies', 1.0,
-    'Minimum fraction of available NIO samples to be included in the training. '
+    'Minimum fraction of images with anomalies to be included in the training. '
     'Is not considered when use_all_data False.'
 )
 
@@ -265,6 +265,11 @@ flags.DEFINE_integer(
 flags.DEFINE_bool(
     'load_existing_split', False,
     'load existing split'
+)
+
+flags.DEFINE_list(
+    'gpus', None,
+    'Specify GPUs to run the model on.'
 )
 
 
@@ -553,7 +558,7 @@ def main(argv):
 
     else:
         # For (multiple) GPUs.
-        strategy = tf.distribute.MirroredStrategy(["GPU:1", "GPU:2", "GPU:4", "GPU:5"])  # "GPU:6"])
+        strategy = tf.distribute.MirroredStrategy(devices=FLAGS.gpus)  # "GPU:6"])
         logging.info('Running using MirroredStrategy on %d replicas',
                      strategy.num_replicas_in_sync)
 
