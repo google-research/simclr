@@ -400,8 +400,8 @@ def perform_evaluation(model, builder, eval_steps, ckpt, strategy, topology):
         # label_top_1_accuracy = tf.keras.metrics.Accuracy(
         #     'eval/label_top_1_accuracy')
         label_accuracy = tf.keras.metrics.Mean('eval/label_accuracy')
-        label_recall = tf.keras.metrics.Recall(name='eval/label_recall positives')
-        label_precision = tf.keras.metrics.Precision(name='eval/label_precision negatives')
+        label_recall = tf.keras.metrics.Recall(name='eval/label_recall')
+        label_precision = tf.keras.metrics.Precision(name='eval/label_precision')
         # label_top_K_accuracy = tf.keras.metrics.TopKCategoricalAccuracy(
         #     FLAGS.top_K, 'eval/label_top_' + str(FLAGS.top_K) + '_accuracy')
         all_metrics = [
@@ -515,6 +515,7 @@ def main(argv):
     # builder = CustomBuilder(FLAGS.dataset, data_dir=FLAGS.data_dir)
     builder = getBuilder(FLAGS.dataset,
                          FLAGS.data_dir,
+                         train_mode=FLAGS.train_mode,
                          load_existing_split=FLAGS.load_existing_split,
                          results_dir=FLAGS.model_dir + '_' + FLAGS.run_id,
                          use_all_data=FLAGS.use_all_data,
@@ -559,7 +560,7 @@ def main(argv):
 
     else:
         # For (multiple) GPUs.
-        strategy = tf.distribute.MirroredStrategy(devices=FLAGS.gpus)  # "GPU:6"])
+        strategy = tf.distribute.MirroredStrategy(devices=FLAGS.gpus)
         logging.info('Running using MirroredStrategy on %d replicas',
                      strategy.num_replicas_in_sync)
 
@@ -600,10 +601,10 @@ def main(argv):
                     contrast_loss_metric, contrast_acc_metric, contrast_entropy_metric
                 ])
             if FLAGS.train_mode == 'finetune' or FLAGS.lineareval_while_pretraining:
-                supervised_loss_metric = tf.keras.metrics.Mean('train/supervised_loss')
-                supervised_acc_metric = tf.keras.metrics.Mean('train/supervised_acc')
-                supervised_recall_metric = tf.keras.metrics.Recall(name='train/supervised_recall positives')
-                supervised_precision_metric = tf.keras.metrics.Precision(name='train/supervised_precision negatives')
+                supervised_loss_metric = tf.keras.metrics.Mean(FLAGS.train_mode + '/supervised_loss')
+                supervised_acc_metric = tf.keras.metrics.Mean(FLAGS.train_mode + '/supervised_acc')
+                supervised_recall_metric = tf.keras.metrics.Recall(name=FLAGS.train_mode + '/supervised_recall')
+                supervised_precision_metric = tf.keras.metrics.Precision(name=FLAGS.train_mode + '/supervised_precision')
                 all_metrics.extend([supervised_loss_metric, supervised_acc_metric,
                                     supervised_recall_metric, supervised_precision_metric])
 

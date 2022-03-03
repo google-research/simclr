@@ -7,6 +7,7 @@ import pandas as pd
 import pickle
 from glob import glob
 from absl import logging
+import sys
 
 
 def getBuilder(dataset, *args, **kwargs):
@@ -20,7 +21,10 @@ def getBuilder(dataset, *args, **kwargs):
 
 class StandardBuilder():
 
-    def __init__(self, *args, use_all_data=True, min_fraction_anomalies=0.8, train_test_ratio=2, **kwargs):
+    def __init__(self, *args, train_mode='train_then_eval',
+                 use_all_data=True, min_fraction_anomalies=0.8,
+                 train_test_ratio=0.2, **kwargs):
+        self.train_mode = train_mode
         self.use_all_data = use_all_data #kwargs.get('use_all_data', True)
         self.min_fraction_anomalies = min_fraction_anomalies# kwargs.get('min_fraction_anomalies', 0.8)
         self.train_test_ratio = train_test_ratio# kwargs.get('train_test_ratio', 0.2)
@@ -211,8 +215,10 @@ class BMWBuilder(StandardBuilder):
 
     def as_dataset(self, split=None, batch_size=None, shuffle_files=None, as_supervised=False, read_config=None):
 
-        # AUTOTUNE = tf.data.AUTOTUNE
-        AUTOTUNE = tf.data.experimental.AUTOTUNE
+        if tf.version.VERSION != '2.7.0':
+            AUTOTUNE = tf.data.experimental.AUTOTUNE
+        else:
+            AUTOTUNE = tf.data.AUTOTUNE
 
         def get_label(status):
             l = status != 'IO'
@@ -252,9 +258,16 @@ class BMWBuilder(StandardBuilder):
 
             train_df, test_df = self.split_data_set(annotations, neg_mask, pos_mask)
 
+            if self.train_mode == 'finetune':
+                if os.path.isfile(os.path.join(self.results_dir, "split.pkl")):
+                    logging.warn("finetune mode and existing split detected. Change your run_id! Stopping")
+                    sys.exit("Change our run_id!")
+
             with open(os.path.join(self.results_dir, "split.pkl"), "wb") as f:
                 pickle.dump((train_df, test_df), f)
         else:
+            if self.train_mode != 'finetune':
+                logging.warn("finetune mode detected. existing split will be loaded. make sure this is what you want!")
             logging.info("loading existing split from {}".format(os.path.join(self.results_dir, "split.pkl")))
             with open(os.path.join(self.results_dir, "split.pkl"), "rb") as f:
                 (train_df, test_df) = pickle.load(f)
