@@ -2,3 +2,4 @@ env
 pill
 logs
 __pycache__
+.idea

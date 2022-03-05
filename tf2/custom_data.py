@@ -111,7 +111,10 @@ class MVTechBuilder(StandardBuilder):
         super().__init__(**kwargs)
         print(kwargs)
         self.dataset = dataset
-        self.path = os.path.join(data_dir, '*')
+        if kwargs["categories"] != None:
+            self.path = [os.path.join(data_dir, cat) for cat in kwargs["categories"]]
+        else:
+            self.path = os.path.join(data_dir, '*')
 
     def download_and_prepare(self):
         self._load_mvtech_dataset()
@@ -159,9 +162,15 @@ class MVTechBuilder(StandardBuilder):
         return dataset.map(process, num_parallel_calls=AUTOTUNE)
 
     def _load_mvtech_dataset(self):
-
-        neg_files = glob(os.path.join(self.path, 'train', 'good', '*.png'))
-        pos_files = glob(os.path.join(self.path, 'test', '*', '*.png'))
+        if type(self.path) == list:
+            neg_files = []
+            pos_files = []
+            for path_cat in self.path:
+                neg_files += glob(os.path.join(path_cat, 'train', 'good', '*.png'))
+                pos_files += glob(os.path.join(path_cat, 'test', '*', '*.png'))
+        else:
+            neg_files = glob(os.path.join(self.path, 'train', 'good', '*.png'))
+            pos_files = glob(os.path.join(self.path, 'test', '*', '*.png'))
 
         neg_df = pd.DataFrame(data={'lbl': ['good'] * len(neg_files)}, index=neg_files)
         pos_df = pd.DataFrame(data={'lbl': ['bad'] * len(pos_files)}, index=pos_files)

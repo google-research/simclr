@@ -272,6 +272,11 @@ flags.DEFINE_list(
     'Specify GPUs to run the model on.'
 )
 
+flags.DEFINE_list(
+    'categories', None,
+    'Specify mvtec dataset categories to run the model on.'
+)
+
 
 def get_salient_tensors_dict(include_projection_head):
     """Returns a dictionary of tensors."""
@@ -520,7 +525,8 @@ def main(argv):
                          results_dir=FLAGS.model_dir + '_' + FLAGS.run_id,
                          use_all_data=FLAGS.use_all_data,
                          train_test_ratio=FLAGS.train_test_ratio,
-                         min_fraction_anomalies=FLAGS.min_fraction_anomalies)
+                         min_fraction_anomalies=FLAGS.min_fraction_anomalies,
+                         categories=FLAGS.categories)
 
     builder.download_and_prepare()
     num_train_examples = builder.info.splits[FLAGS.train_split].num_examples
