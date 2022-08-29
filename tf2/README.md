@@ -85,7 +85,7 @@ python run.py --train_mode=pretrain \
   --learning_rate=0.075 --learning_rate_scaling=sqrt --weight_decay=1e-4 \
   --dataset=imagenet2012 --image_size=224 --eval_split=validation \
   --data_dir=$DATA_DIR --model_dir=$MODEL_DIR \
-  --use_tpu=True --tpu_name=$TPU_NAME --train_summary_steps=0
+  --use_tpu=True --tpu_name=$TPU_NAME
 ```
 
 A batch size of 4096 requires at least 32 TPUs. 100 epochs takes around 6 hours with 32 TPU v3s. Note that learning rate of 0.3 with `learning_rate_scaling=linear` is equivalent to that of 0.075 with `learning_rate_scaling=sqrt` when the batch size is 4096. However, using sqrt scaling allows it to train better when smaller batch size is used.
