@@ -7,7 +7,6 @@ setup_info = dict(
     name='simclr',
     version=version,
     author='google-research',
-    author_email='Alex.Holkner@gmail.com',
     url='https://github.com/google-research/simclr',
     download_url='https://github.com/google-research/simclr/tags',
     project_urls={
