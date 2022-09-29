@@ -22,10 +22,12 @@ import os
 from absl import app
 from absl import flags
 from absl import logging
-import data as data_lib
-import metrics
-import model as model_lib
-import objective as obj_lib
+
+import simclr.tf2.data as data_lib
+import simclr.tf2.metrics as metrics
+import simclr.tf2.model as model_lib
+import simclr.tf2.objective as obj_lib
+
 import tensorflow.compat.v2 as tf
 import tensorflow_datasets as tfds
 

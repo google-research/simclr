@@ -18,9 +18,9 @@
 import math
 from absl import flags
 
-import data_util
-import lars_optimizer
-import resnet
+import simclr.tf2.data_util as data_util
+import simclr.tf2.lars_optimizer as lars_optimizer
+import simclr.tf2.resnet as resnet
 import tensorflow.compat.v2 as tf
 
 FLAGS = flags.FLAGS

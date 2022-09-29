@@ -22,7 +22,7 @@ from __future__ import print_function
 import functools
 from absl import flags
 
-import data_util as data_util
+import simclr.data_util as data_util
 import tensorflow.compat.v1 as tf
 
 FLAGS = flags.FLAGS
