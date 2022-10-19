@@ -19,7 +19,7 @@ import functools
 from absl import flags
 from absl import logging
 
-import data_util
+import simclr.tf2.data_util as data_util
 import tensorflow.compat.v2 as tf
 import tensorflow_datasets as tfds
 
