@@ -105,10 +105,11 @@ def get_preprocess_fn(is_training, is_pretrain):
     test_crop = False
   else:
     test_crop = True
+  color_jitter_strength = FLAGS.color_jitter_strength if is_pretrain else 0.
   return functools.partial(
       data_util.preprocess_image,
       height=FLAGS.image_size,
       width=FLAGS.image_size,
       is_training=is_training,
-      color_distort=is_pretrain,
+      color_jitter_strength=color_jitter_strength,
       test_crop=test_crop)

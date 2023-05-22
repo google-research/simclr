@@ -22,7 +22,7 @@ import tensorflow.compat.v2 as tf
 EETA_DEFAULT = 0.001
 
 
-class LARSOptimizer(tf.keras.optimizers.Optimizer):
+class LARSOptimizer(tf.keras.optimizers.legacy.Optimizer):
   """Layer-wise Adaptive Rate Scaling for large batch training.
 
   Introduced by "Large Batch Training of Convolutional Networks" by Y. You,

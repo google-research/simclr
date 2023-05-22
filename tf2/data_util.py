@@ -16,11 +16,8 @@
 """Data preprocessing and augmentation."""
 
 import functools
-from absl import flags
 
 import tensorflow.compat.v2 as tf
-
-FLAGS = flags.FLAGS
 
 CROP_PROPORTION = 0.875  # Standard for ImageNet.
 
@@ -446,7 +443,7 @@ def batch_random_blur(images_list, height, width, blur_probability=0.5):
 def preprocess_for_train(image,
                          height,
                          width,
-                         color_distort=True,
+                         color_jitter_strength=0.,
                          crop=True,
                          flip=True,
                          impl='simclrv2'):
@@ -456,11 +453,12 @@ def preprocess_for_train(image,
     image: `Tensor` representing an image of arbitrary size.
     height: Height of output image.
     width: Width of output image.
-    color_distort: Whether to apply the color distortion.
+    color_jitter_strength: `float` between 0 and 1 indicating the color
+      distortion strength, disable color distortion if not bigger than 0.
     crop: Whether to crop the image.
     flip: Whether or not to flip left and right of an image.
     impl: 'simclrv1' or 'simclrv2'.  Whether to use simclrv1 or simclrv2's
-        version of random brightness.
+      version of random brightness.
 
   Returns:
     A preprocessed image `Tensor`.
@@ -469,8 +467,8 @@ def preprocess_for_train(image,
     image = random_crop_with_resize(image, height, width)
   if flip:
     image = tf.image.random_flip_left_right(image)
-  if color_distort:
-    image = random_color_jitter(image, strength=FLAGS.color_jitter_strength,
+  if color_jitter_strength > 0:
+    image = random_color_jitter(image, strength=color_jitter_strength,
                                 impl=impl)
   image = tf.reshape(image, [height, width, 3])
   image = tf.clip_by_value(image, 0., 1.)
@@ -497,7 +495,7 @@ def preprocess_for_eval(image, height, width, crop=True):
 
 
 def preprocess_image(image, height, width, is_training=False,
-                     color_distort=True, test_crop=True):
+                     color_jitter_strength=0., test_crop=True):
   """Preprocesses the given image.
 
   Args:
@@ -505,7 +503,8 @@ def preprocess_image(image, height, width, is_training=False,
     height: Height of output image.
     width: Width of output image.
     is_training: `bool` for whether the preprocessing is for training.
-    color_distort: whether to apply the color distortion.
+    color_jitter_strength: `float` between 0 and 1 indicating the color
+      distortion strength, disable color distortion if not bigger than 0.
     test_crop: whether or not to extract a central crop of the images
         (as for standard ImageNet evaluation) during the evaluation.
 
@@ -514,6 +513,6 @@ def preprocess_image(image, height, width, is_training=False,
   """
   image = tf.image.convert_image_dtype(image, dtype=tf.float32)
   if is_training:
-    return preprocess_for_train(image, height, width, color_distort)
+    return preprocess_for_train(image, height, width, color_jitter_strength)
   else:
     return preprocess_for_eval(image, height, width, test_crop)

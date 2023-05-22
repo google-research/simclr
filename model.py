@@ -26,6 +26,7 @@ import model_util as model_util
 import objective as obj_lib
 
 import tensorflow.compat.v1 as tf
+from tensorflow.compat.v1 import estimator as tf_estimator
 import tensorflow.compat.v2 as tf2
 
 FLAGS = flags.FLAGS
@@ -35,7 +36,7 @@ def build_model_fn(model, num_classes, num_train_examples):
   """Build model function."""
   def model_fn(features, labels, mode, params=None):
     """Build model and optimizer."""
-    is_training = mode == tf.estimator.ModeKeys.TRAIN
+    is_training = mode == tf_estimator.ModeKeys.TRAIN
 
     # Check training mode.
     if FLAGS.train_mode == 'pretrain':
@@ -183,7 +184,7 @@ def build_model_fn(model, num_classes, num_train_examples):
       else:
         scaffold_fn = None
 
-      return tf.estimator.tpu.TPUEstimatorSpec(
+      return tf_estimator.tpu.TPUEstimatorSpec(
           mode=mode, train_op=train_op, loss=loss, scaffold_fn=scaffold_fn)
     else:
 
@@ -215,7 +216,7 @@ def build_model_fn(model, num_classes, num_train_examples):
                                          tf.losses.get_regularization_loss()),
       }
 
-      return tf.estimator.tpu.TPUEstimatorSpec(
+      return tf_estimator.tpu.TPUEstimatorSpec(
           mode=mode,
           loss=loss,
           eval_metrics=(metric_fn, metrics),

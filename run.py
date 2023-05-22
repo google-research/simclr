@@ -31,6 +31,7 @@ import model as model_lib
 import model_util as model_util
 
 import tensorflow.compat.v1 as tf
+from tensorflow.compat.v1 import estimator as tf_estimator
 import tensorflow_datasets as tfds
 import tensorflow_hub as hub
 
@@ -397,10 +398,10 @@ def main(argv):
       tf.config.experimental_connect_to_cluster(cluster)
       tf.tpu.experimental.initialize_tpu_system(cluster)
 
-  default_eval_mode = tf.estimator.tpu.InputPipelineConfig.PER_HOST_V1
-  sliced_eval_mode = tf.estimator.tpu.InputPipelineConfig.SLICED
-  run_config = tf.estimator.tpu.RunConfig(
-      tpu_config=tf.estimator.tpu.TPUConfig(
+  default_eval_mode = tf_estimator.tpu.InputPipelineConfig.PER_HOST_V1
+  sliced_eval_mode = tf_estimator.tpu.InputPipelineConfig.SLICED
+  run_config = tf_estimator.tpu.RunConfig(
+      tpu_config=tf_estimator.tpu.TPUConfig(
           iterations_per_loop=checkpoint_steps,
           eval_training_input_configuration=sliced_eval_mode
           if FLAGS.use_tpu else default_eval_mode),
@@ -410,7 +411,7 @@ def main(argv):
       keep_checkpoint_max=FLAGS.keep_checkpoint_max,
       master=FLAGS.master,
       cluster=cluster)
-  estimator = tf.estimator.tpu.TPUEstimator(
+  estimator = tf_estimator.tpu.TPUEstimator(
       model_lib.build_model_fn(model, num_classes, num_train_examples),
       config=run_config,
       train_batch_size=FLAGS.train_batch_size,
