@@ -186,6 +186,7 @@ Implementations in PyTorch:
 * [ae-foster](https://github.com/ae-foster/pytorch-simclr)
 * [Spijkervet](https://github.com/Spijkervet/SimCLR)
 * [williamFalcon](https://pytorch-lightning-bolts.readthedocs.io/en/latest/self_supervised_models.html#simclr)
+* [BalajiAI](https://github.com/BalajiAI/SimCLR)
 
 Implementations in Tensorflow 2 / Keras (official TF2 implementation was added in <a href="tf2/">tf2/ folder</a>):
 * [sayakpaul](https://github.com/sayakpaul/SimCLR-in-TensorFlow-2)
